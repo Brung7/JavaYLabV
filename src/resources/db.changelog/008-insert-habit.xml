@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        logicalFilePath="db/changelog.xml">
+    <changeSet id="008-insert-habit" author="Ovsiannikov Vladimir">
+        <insert schemaName="main" tableName="habits">
+            <column name="id" valueNumeric="1"/>
+            <column name="name" value="Exercise"/>
+            <column name="description" value="want to be stronger"/>
+            <column name="frequency" value="DAILY"/>
+            <column name="user_id" value="1"/>
+        </insert>
+        <insert schemaName="main" tableName="habits">
+            <column name="id" valueNumeric="2"/>
+            <column name="name" value="Education"/>
+            <column name="description" value="want to be more clever"/>
+            <column name="frequency" value="DAILY"/>
+            <column name="user_id" value="1"/>
+        </insert>
+        <insert schemaName="main" tableName="habits">
+            <column name="id" valueNumeric="3"/>
+            <column name="name" value="Reading"/>
+            <column name="description" value="Love read book"/>
+            <column name="frequency" value="WEEKLY"/>
+            <column name="user_id" value="2"/>
+        </insert>
+        <insert schemaName="main" tableName="habits">
+            <column name="id" valueNumeric="4"/>
+            <column name="name" value="Cleaning"/>
+            <column name="description" value="Should wash room"/>
+            <column name="frequency" value="MONTHLY"/>
+            <column name="user_id" value="2"/>
+        </insert>
+        <insert schemaName="main" tableName="habits">
+            <column name="id" valueNumeric="5"/>
+            <column name="name" value="Programming"/>
+            <column name="description" value="Want to be developer"/>
+            <column name="frequency" value="DAILY"/>
+            <column name="user_id" value="3"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
