@@ -1,6 +1,9 @@
 package by.vladimir.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
@@ -10,4 +13,5 @@ public class CreateUserDto {
      String email;
      String password;
      String role;
+
 }

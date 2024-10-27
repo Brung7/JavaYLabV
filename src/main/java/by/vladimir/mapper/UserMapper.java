@@ -1,25 +1,23 @@
 package by.vladimir.mapper;
 
 import by.vladimir.dto.CreateUserDto;
-import by.vladimir.entity.Role;
 import by.vladimir.entity.User;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
-public class UserMapper {
-    private static final UserMapper INSTANCE = new UserMapper();
+/**
+ * Интерфейс для маппинга Dto пользователя.
+ */
+@Mapper
+public interface UserMapper {
 
-    private UserMapper() {
-    }
+    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
-    public static UserMapper getInstance() {
-        return INSTANCE;
-    }
-
-    public User mapFrom(CreateUserDto createUserDto) {
-        return User.builder()
-                .email(createUserDto.getEmail())
-                .password(createUserDto.getPassword())
-                .role(Role.valueOf(createUserDto.getRole()))
-                .build();
-    }
-
+    /**
+     * Получает на вход CreateUserDto
+     * Мапит объект класса CreateUserDto в User.
+     * @param createUserDto - dto получаемого пользователя.
+     * @return объект класса User.
+     */
+    User toUser(CreateUserDto createUserDto);
 }

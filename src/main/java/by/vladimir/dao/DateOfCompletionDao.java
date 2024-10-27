@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Класс для взаимодейсвия с таблицей date в базе данных
+ */
 public class DateOfCompletionDao {
     private static final DateOfCompletionDao INSTANCE = new DateOfCompletionDao();
     private final DateFormatter dateFormatter = DateFormatter.getInstance();
@@ -31,6 +34,15 @@ public class DateOfCompletionDao {
     private static final String FIND_BY_HABIT = """
             SELECT id,habit_id,completion_date FROM main.dates WHERE habit_id=?
             """;
+
+    /**
+     * Метод принимает объект класса DateOfCompletion.
+     * Подключается к базе данных.
+     * Если подключение успешно устанавливаются значения даты и id привычки.
+     * Генерируется id и при помощи SQL запроса создается запись в базе данных.
+     * @param date объект класса DateOfCompletion
+     * @return возвращет созданный объект
+     */
     public DateOfCompletion save(DateOfCompletion date){
         try (Connection connection = ConnectionManager.get();
              PreparedStatement statement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)){
@@ -45,6 +57,13 @@ public class DateOfCompletionDao {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Метод принимает объект класса DateOfCompletion.
+     * Подключается к базе данных.
+     * Если подключение успешно при помощи SQL запроса обновляется запись в базе данных
+     * @param date объект класса DateOfCompletion
+     */
     public void update(DateOfCompletion date){
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         try (Connection connection = ConnectionManager.get();
@@ -56,6 +75,12 @@ public class DateOfCompletionDao {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Получает на вход id даты.
+     * При помощи SQL-запроса удаляет запись из базы данных по полученному id.
+     * @param id - индификатор записи в базе данных
+     */
     public void delete(Long id){
         try (Connection connection = ConnectionManager.get();
         PreparedStatement statement = connection.prepareStatement(DELETE_SQL)){
@@ -65,6 +90,14 @@ public class DateOfCompletionDao {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Получет на вход id habit, к которой относится date.
+     * При помощи SQL-запроса находит все date с заданным habitId.
+     * Добавляе их в List
+     * @param habitId - индификатор Habit, к которой относятся даты
+     * @return возвращает лист с датами, которые относятся к habit с заданным id
+     */
     public List<DateOfCompletion> findByHabitId(Long habitId){
         List<DateOfCompletion> listDate = new ArrayList<>();
         try (Connection connection = ConnectionManager.get();
@@ -81,6 +114,13 @@ public class DateOfCompletionDao {
 
     }
 
+    /**
+     * Получает на вход resultSet.
+     * Создает объект DateOfCompletion по полученным значениям из базы данных.
+     * @param resultSet - результат запроса полученный из базы данных.
+     * @return возвращает объект DateOfCompletion
+     * @throws SQLException
+     */
     public DateOfCompletion builder(ResultSet resultSet) throws SQLException {
         return new DateOfCompletion(
                 resultSet.getLong("id"),
@@ -88,6 +128,14 @@ public class DateOfCompletionDao {
                 resultSet.getDate("completion_date")
         );
     }
+
+    /**
+     * Поулчает на вход id даты.
+     * При помощи SQL-запроса находит запись в базе данных по заданному id.
+     * Записывает в Optional переменную полученный объект.
+     * @param id - индификатор date
+     * @return - возвращает Optional объекта
+     */
     public Optional<DateOfCompletion> findById(Long id){
         try (Connection connection = ConnectionManager.get();
         PreparedStatement statement = connection.prepareStatement(FIND_BY_ID)){

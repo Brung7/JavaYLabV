@@ -3,17 +3,36 @@ package by.vladimir.entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Date;
-import java.util.List;
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class Habit {
-    private Long id;
-    private String name;
-    private String description;
-    private Frequency frequency;
-    private Long userId;
 
+    /**
+     * Индификатор привычки
+     */
+    Long id;
+
+    /**
+     * Название привычки
+     */
+    String name;
+
+    /**
+     * Описание привычки
+     */
+    String description;
+
+    /**
+     * Частота выполнения
+     */
+    Frequency frequency;
+
+    /**
+     * индификатор пользователя
+     */
+    Long userId;
 }

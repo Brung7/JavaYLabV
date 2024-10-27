@@ -1,7 +1,10 @@
 package by.vladimir.dto;
 
 import by.vladimir.entity.Frequency;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
@@ -12,4 +15,5 @@ public class HabitDto {
     String name;
     String description;
     Frequency frequency;
+
 }

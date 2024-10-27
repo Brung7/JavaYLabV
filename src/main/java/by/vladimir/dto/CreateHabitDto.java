@@ -1,6 +1,9 @@
 package by.vladimir.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
@@ -11,4 +14,5 @@ public class CreateHabitDto {
     String description;
     String frequency;
     Long userId;
+
 }
