@@ -1,14 +1,8 @@
 package by.vladimir.service;
 
-import by.vladimir.dao.DateOfCompletionDao;
-import by.vladimir.dao.HabitDao;
 import by.vladimir.dao.UserDao;
 import by.vladimir.dto.CreateUserDto;
-import by.vladimir.dto.UserDto;
-import by.vladimir.entity.Role;
 import by.vladimir.entity.User;
-import by.vladimir.mapper.DateOfComplMapper;
-import by.vladimir.mapper.DateOfCompletionUpdateMapper;
 import by.vladimir.utils.ConnectionManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -28,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class UserServiceTest {
     private CreateUserDto createUserDto;
     private UserDao userDao = UserDao.getInstance();
-    private UserService userService = UserService.getINSTANCE();
+    private UserService userService = UserService.getInstance();
     @Container
     private static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest")
             .withDatabaseName("habit_tracker")

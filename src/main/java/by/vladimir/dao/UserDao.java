@@ -10,6 +10,9 @@ import by.vladimir.utils.ConnectionManager;
 import java.sql.*;
 import java.util.*;
 
+/**
+ * Класс для взаимодействия с таблицей users в базе данных
+ */
 public class UserDao {
     private static final UserDao INSTANCE = new UserDao();
 
@@ -45,10 +48,15 @@ public class UserDao {
     private UserDao() {
     }
 
-    public static UserDao getInstance() {
-        return INSTANCE;
-    }
-
+    /**
+     * Получает на вход пользователя.
+     * Подключается к базе данных.
+     * Если подключеие успешно, передает в SQL-запрос установленные поля.
+     * Генерирует id.
+     * Сохраняет запись в базу данных
+     * @param user объект класса User, который хотим сохранить в базу данных
+     * @return возвращает созданого пользователя
+     */
     public User save(User user) {
         try(Connection connection = ConnectionManager.get();
         PreparedStatement statement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)){
@@ -65,6 +73,14 @@ public class UserDao {
         }
     }
 
+    /**
+     * Принимает на вход email.
+     * Создает подключение к базе данных.
+     * Если подключение успешно, при помощи SQL-запроса находит запись в базе данных
+     * и передает её в Optional переменную.
+     * @param email - email пользователя, которого хотим найти
+     * @return возвращает Optional полученного объекта
+     */
     public Optional<User> findByEmail(String email) {
         try (Connection connection = ConnectionManager.get();
             PreparedStatement statement = connection.prepareStatement(FIND_BY_EMAIL_SQL)) {
@@ -81,6 +97,13 @@ public class UserDao {
         }
     }
 
+    /**
+     * Получает на вход result.
+     * По полученым данным создает объект класса User.
+     * @param result - результат запроса полученный из базы данных.
+     * @return возвращает созданного пользователя
+     * @throws SQLException
+     */
     public User buildUser(ResultSet result) throws SQLException {
         return new User(
                 result.getLong("id"),
@@ -89,6 +112,12 @@ public class UserDao {
                 Role.valueOf(result.getString("role")));
     }
 
+    /**
+     * Получает на вход пользователя.
+     * Подкючается к базе данных.
+     * Если подключение успешно обновляет полученного пользователя в базе данных.
+     * @param user - пользователь, которого хотим обновить
+     */
     public void update(User user) {
         try (Connection connection = ConnectionManager.get();
         PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)){
@@ -102,6 +131,13 @@ public class UserDao {
         }
     }
 
+    /**
+     * Получаето на вход id пользователя.
+     * Создает подключение к базе данных.
+     * Если подключение успешно, удаляет запись из базы данных
+     * по полученному id.
+     * @param id - индификатор пользователя, которого надо удалить
+     */
     public void delete(Long id) {
         try (Connection connection = ConnectionManager.get();
              PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
@@ -112,6 +148,11 @@ public class UserDao {
         }
     }
 
+    /**
+     * Создает подключение к базе данных.
+     * Если подключение успешно, возвращает список всех пользователей.
+     * @return возвращает список полученных пользователей
+     */
     public List<User> getListOfUsers() {
         try (Connection connection = ConnectionManager.get();
              PreparedStatement statement = connection.prepareStatement(FIND_ALL_SQL)) {
@@ -125,6 +166,14 @@ public class UserDao {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Создает подключение к базе данных.
+     * Если подключение получает пользователя,
+     * затем получает все привычки, которые относятся к пользователю и добавляет
+     * все привычки в список, для пользователя и добавляет самого пользователя в список.
+     * @return возвращает список пользователей и список привычек каждого пользователя
+     */
     public List<UserDto> getAllHabitsOfAllUsers(){
         List<UserDto> users = new ArrayList<>();
         try (Connection connection = ConnectionManager.get();
@@ -159,6 +208,10 @@ public class UserDao {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static UserDao getInstance() {
+        return INSTANCE;
     }
 
 }

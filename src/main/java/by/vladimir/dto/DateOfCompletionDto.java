@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class DateOfCompletionDto {
     Long id;
     String date;
+
 }

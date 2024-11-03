@@ -6,8 +6,7 @@ import by.vladimir.dao.UserDao;
 import by.vladimir.dto.CreateDateOfComplDto;
 import by.vladimir.dto.DateOfCompletionDto;
 import by.vladimir.entity.*;
-import by.vladimir.mapper.DateOfComplMapper;
-import by.vladimir.mapper.DateOfCompletionUpdateMapper;
+import by.vladimir.mapper.DateOfCompletionMapper;
 import by.vladimir.utils.ConnectionManager;
 import by.vladimir.utils.DateFormatter;
 import org.junit.jupiter.api.AfterEach;
@@ -33,10 +32,9 @@ public class DateOfCompletionServiceTest {
 
     private UserDao userDao;
     private HabitDao habitDao;
-    private DateOfComplMapper dateMapper;
+    private DateOfCompletionMapper dateMapper;
 
     private DateOfCompletionDao dateOfCompletionDao;
-    private DateOfCompletionUpdateMapper dateOfComplMapper;
     private DateFormatter formatter = DateFormatter.getInstance();
     private DateOfCompletionService dateService;
 
@@ -46,9 +44,8 @@ public class DateOfCompletionServiceTest {
 
         habitDao = HabitDao.getInstance();
         userDao = UserDao.getInstance();
-        dateMapper = DateOfComplMapper.getInstance();
+        dateMapper = DateOfCompletionMapper.INSTANCE;
         dateOfCompletionDao = DateOfCompletionDao.getInstance();
-        dateOfComplMapper = DateOfCompletionUpdateMapper.getInstance();
         dateService = DateOfCompletionService.getInstance();
 
 
@@ -81,7 +78,7 @@ public class DateOfCompletionServiceTest {
                 .habitId(habit1.getId())
                 .date("2024-10-19")
                 .build();
-        DateOfCompletion date = dateMapper.mapFrom(createDateOfComplDto);
+        DateOfCompletion date = dateMapper.toDateOfCompl(createDateOfComplDto);
         dateOfCompletionDao.save(date);
         List<DateOfCompletion> dateOfCompletionList = dateOfCompletionDao.findByHabitId(habit1.getId());
         Assertions.assertEquals(1, dateOfCompletionList.size());
@@ -98,14 +95,14 @@ public class DateOfCompletionServiceTest {
                 .habitId(habit1.getId())
                 .date("2024-10-21")
                 .build();
-        DateOfCompletion date = dateMapper.mapFrom(createDateOfComplDto);
+        DateOfCompletion date = dateMapper.toDateOfCompl(createDateOfComplDto);
         dateOfCompletionDao.save(date);
         DateOfCompletionDto dateOfCompletionDto = DateOfCompletionDto.
                 builder()
                 .id(date.getId())
                 .date("2024-10-18")
                 .build();
-        DateOfCompletion dateUpdate = dateOfComplMapper.mapFrom(dateOfCompletionDto);
+        DateOfCompletion dateUpdate = dateMapper.toDateOfComplFromDto(dateOfCompletionDto);
         dateOfCompletionDao.update(dateUpdate);
         Optional<DateOfCompletion> optional = dateOfCompletionDao.findById(dateUpdate.getId());
         Assertions.assertTrue(optional.isPresent());
@@ -126,7 +123,7 @@ public class DateOfCompletionServiceTest {
                 .habitId(habit1.getId())
                 .date("2024-10-19")
                 .build();
-        DateOfCompletion date = dateMapper.mapFrom(createDateOfComplDto);
+        DateOfCompletion date = dateMapper.toDateOfCompl(createDateOfComplDto);
         dateOfCompletionDao.save(date);
         dateOfCompletionDao.delete(date.getId());
         Assertions.assertFalse(dateService.containById(date.getId()));
@@ -144,7 +141,7 @@ public class DateOfCompletionServiceTest {
                 .habitId(habit1.getId())
                 .date("2024-10-19")
                 .build();
-        DateOfCompletion date = dateMapper.mapFrom(createDateOfComplDto);
+        DateOfCompletion date = dateMapper.toDateOfCompl(createDateOfComplDto);
         dateOfCompletionDao.save(date);
         List<DateOfCompletion> list = dateService.findByHabitId(habit1.getId());
         Assertions.assertEquals(1, list.size());
@@ -162,7 +159,7 @@ public class DateOfCompletionServiceTest {
                 .habitId(habit1.getId())
                 .date("2024-10-19")
                 .build();
-        DateOfCompletion date = dateMapper.mapFrom(createDateOfComplDto);
+        DateOfCompletion date = dateMapper.toDateOfCompl(createDateOfComplDto);
         dateOfCompletionDao.save(date);
         Assertions.assertTrue(dateService.containById(date.getId()));
     }

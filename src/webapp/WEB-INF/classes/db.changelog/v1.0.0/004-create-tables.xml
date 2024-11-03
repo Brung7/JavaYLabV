@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        logicalFilePath="db/changelog.xml">
+    <changeSet id="004-create-table-users" author="Ovsiannikov Vladimir">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="main" tableName="users"/>
+                <sequenceExists sequenceName="usersequence"/>
+            </not>
+        </preConditions>
+        <createTable schemaName="main" tableName="users">
+            <column name="id" type="BIGINT" defaultValueComputed="nextval('main.userSequence')">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="email" type="varchar(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="005-create-table-habits" author="Ovsiannikov Vladimir">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="main" tableName="habits"/>
+                <sequenceExists sequenceName="habitsequence"/>
+            </not>
+        </preConditions>
+        <createTable schemaName="main" tableName="habits">
+            <column name="id" type="BIGINT" defaultValueComputed="nextval('main.habitSequence')">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(60)">
+                <constraints nullable="false" />
+            </column>
+            <column name="description" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="frequency" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints foreignKeyName="userId" referencedTableSchemaName="main" referencedTableName="users" referencedColumnNames="id" deleteCascade="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="006-create-table-dates" author="Ovsiannikov Vladimir">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="main" tableName="dates"/>
+                <sequenceExists sequenceName="datesequence"/>
+            </not>
+        </preConditions>
+        <createTable schemaName="main" tableName="dates">
+            <column name="id" type="BIGINT" defaultValueComputed="nextval('main.dateSequence')">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="habit_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="habitId" referencedTableSchemaName="main" referencedTableName="habits" referencedColumnNames="id" deleteCascade="true"/>
+            </column>
+            <column name="completion_date" type="date">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>    
