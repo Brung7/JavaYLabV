@@ -8,4 +8,7 @@
     <changeSet id="003-sequence-date" author="Ovsiannikov Vladimir">
         <createSequence schemaName="main" sequenceName="datesequence" startValue="7" incrementBy="1"/>
     </changeSet>
+    <changeSet id="004-sequence-date" author="Ovsiannikov Vladimir">
+        <createSequence schemaName="audit" sequenceName="auditsequence" startValue="7" incrementBy="1"/>
+    </changeSet>
 </databaseChangeLog>

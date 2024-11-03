@@ -1,25 +1,27 @@
 package by.vladimir.mapper;
 
 import by.vladimir.dto.CreateUserDto;
-import by.vladimir.entity.Role;
 import by.vladimir.entity.User;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.factory.Mappers;
+import org.springframework.stereotype.Component;
 
-public class UserMapper {
-    private static final UserMapper INSTANCE = new UserMapper();
+/**
+ * Интерфейс для маппинга Dto пользователя.
+ */
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public interface UserMapper {
 
-    private UserMapper() {
-    }
-
-    public static UserMapper getInstance() {
-        return INSTANCE;
-    }
-
-    public User mapFrom(CreateUserDto createUserDto) {
-        return User.builder()
-                .email(createUserDto.getEmail())
-                .password(createUserDto.getPassword())
-                .role(Role.valueOf(createUserDto.getRole()))
-                .build();
-    }
-
+    /**
+     * Получает на вход CreateUserDto
+     * Мапит объект класса CreateUserDto в User.
+     * @param createUserDto - dto получаемого пользователя.
+     * @return объект класса User.
+     */
+    @Mapping(source = "email", target = "email")
+    @Mapping(source = "password", target = "password")
+    @Mapping(source = "role", target = "role")
+    User toUser(CreateUserDto createUserDto);
 }

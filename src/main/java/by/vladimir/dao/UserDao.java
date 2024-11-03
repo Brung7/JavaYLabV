@@ -6,12 +6,23 @@ import by.vladimir.entity.Frequency;
 import by.vladimir.entity.Role;
 import by.vladimir.entity.User;
 import by.vladimir.utils.ConnectionManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.*;
 
+/**
+ * Класс для взаимодействия с таблицей users в базе данных
+ */
+@Repository
 public class UserDao {
-    private static final UserDao INSTANCE = new UserDao();
+    private ConnectionManager connectionManager;
+
+    @Autowired
+    public UserDao(ConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
+    }
 
     private static final String SAVE_SQL = """
             INSERT INTO main.users (email, password, role) VALUES (?,?,?)
@@ -42,15 +53,18 @@ public class UserDao {
             LEFT JOIN main.habits h on u.id = h.user_id
             """;
 
-    private UserDao() {
-    }
 
-    public static UserDao getInstance() {
-        return INSTANCE;
-    }
-
+    /**
+     * Получает на вход пользователя.
+     * Подключается к базе данных.
+     * Если подключеие успешно, передает в SQL-запрос установленные поля.
+     * Генерирует id.
+     * Сохраняет запись в базу данных
+     * @param user объект класса User, который хотим сохранить в базу данных
+     * @return возвращает созданого пользователя
+     */
     public User save(User user) {
-        try(Connection connection = ConnectionManager.get();
+        try(Connection connection = connectionManager.get();
         PreparedStatement statement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)){
         statement.setString(1,user.getEmail());
         statement.setString(2, user.getPassword());
@@ -65,8 +79,39 @@ public class UserDao {
         }
     }
 
+    /**
+     * Принимает на вход id.
+     * Создает подключение к базе данных.
+     * Если подключение успешно, при помощи SQL-запроса находит запись в базе данных
+     * и передает её в Optional переменную.
+     * @param id - индификатор пользователя.
+     * @return возвращает Optional полученного объекта.
+     */
+    public Optional<User> findById(Long id){
+        try (Connection connection = connectionManager.get();
+        PreparedStatement statement = connection.prepareStatement(FIND_BY_ID_SQL)){
+            statement.setLong(1,id);
+            ResultSet result = statement.executeQuery();
+            Optional<User> user = Optional.empty();
+            if(result.next()){
+                user = Optional.ofNullable(buildUser(result));
+            }
+            return user;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Принимает на вход email.
+     * Создает подключение к базе данных.
+     * Если подключение успешно, при помощи SQL-запроса находит запись в базе данных
+     * и передает её в Optional переменную.
+     * @param email - email пользователя, которого хотим найти
+     * @return возвращает Optional полученного объекта
+     */
     public Optional<User> findByEmail(String email) {
-        try (Connection connection = ConnectionManager.get();
+        try (Connection connection = connectionManager.get();
             PreparedStatement statement = connection.prepareStatement(FIND_BY_EMAIL_SQL)) {
             statement.setString(1, email);
             ResultSet result = statement.executeQuery();
@@ -81,6 +126,13 @@ public class UserDao {
         }
     }
 
+    /**
+     * Получает на вход result.
+     * По полученым данным создает объект класса User.
+     * @param result - результат запроса полученный из базы данных.
+     * @return возвращает созданного пользователя
+     * @throws SQLException
+     */
     public User buildUser(ResultSet result) throws SQLException {
         return new User(
                 result.getLong("id"),
@@ -89,8 +141,14 @@ public class UserDao {
                 Role.valueOf(result.getString("role")));
     }
 
+    /**
+     * Получает на вход пользователя.
+     * Подкючается к базе данных.
+     * Если подключение успешно обновляет полученного пользователя в базе данных.
+     * @param user - пользователь, которого хотим обновить
+     */
     public void update(User user) {
-        try (Connection connection = ConnectionManager.get();
+        try (Connection connection = connectionManager.get();
         PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)){
             statement.setString(1, user.getEmail());
             statement.setString(2, user.getPassword());
@@ -102,8 +160,15 @@ public class UserDao {
         }
     }
 
+    /**
+     * Получаето на вход id пользователя.
+     * Создает подключение к базе данных.
+     * Если подключение успешно, удаляет запись из базы данных
+     * по полученному id.
+     * @param id - индификатор пользователя, которого надо удалить
+     */
     public void delete(Long id) {
-        try (Connection connection = ConnectionManager.get();
+        try (Connection connection = connectionManager.get();
              PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
             statement.setLong(1, id);
             statement.executeUpdate();
@@ -112,8 +177,13 @@ public class UserDao {
         }
     }
 
+    /**
+     * Создает подключение к базе данных.
+     * Если подключение успешно, возвращает список всех пользователей.
+     * @return возвращает список полученных пользователей
+     */
     public List<User> getListOfUsers() {
-        try (Connection connection = ConnectionManager.get();
+        try (Connection connection = connectionManager.get();
              PreparedStatement statement = connection.prepareStatement(FIND_ALL_SQL)) {
             List<User> userList = new ArrayList<>();
             ResultSet result = statement.executeQuery();
@@ -125,9 +195,17 @@ public class UserDao {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Создает подключение к базе данных.
+     * Если подключение получает пользователя,
+     * затем получает все привычки, которые относятся к пользователю и добавляет
+     * все привычки в список, для пользователя и добавляет самого пользователя в список.
+     * @return возвращает список пользователей и список привычек каждого пользователя
+     */
     public List<UserDto> getAllHabitsOfAllUsers(){
         List<UserDto> users = new ArrayList<>();
-        try (Connection connection = ConnectionManager.get();
+        try (Connection connection = connectionManager.get();
              PreparedStatement statement = connection.prepareStatement(FIND_ALL_USERS_ALL_HABITS)) {
             ResultSet result = statement.executeQuery();
             UserDto userDto = null;
@@ -160,5 +238,4 @@ public class UserDao {
             throw new RuntimeException(e);
         }
     }
-
 }

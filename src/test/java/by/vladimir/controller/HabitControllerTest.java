@@ -1,8 +1,5 @@
 package by.vladimir.controller;
 
-
-import by.vladimir.dao.HabitDao;
-import by.vladimir.dao.UserDao;
 import by.vladimir.dto.CreateHabitDto;
 import by.vladimir.dto.HabitDto;
 import by.vladimir.entity.Frequency;
@@ -10,143 +7,82 @@ import by.vladimir.entity.Habit;
 import by.vladimir.entity.Role;
 import by.vladimir.entity.User;
 import by.vladimir.service.HabitService;
-import by.vladimir.utils.ConnectionManager;
-import org.junit.jupiter.api.AfterEach;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-@Testcontainers
-public class HabitControllerTest {
-    @Container
-    private static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest")
-            .withDatabaseName("habit_tracker")
-            .withUsername("vladimir")
-            .withPassword("admin");
+import static org.mockito.Mockito.when;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+public class HabitControllerTest {
+
+    private MockMvc mockMvc;
+    private HabitController habitController;
+
+    @Mock
     private HabitService habitService;
-    private UserDao userDao;
-    private HabitDao habitDao;
 
     @BeforeEach
-    public void setUp() throws SQLException {
-
-        habitDao = HabitDao.getInstance();
-        userDao = UserDao.getInstance();
-        habitService = HabitService.getInstance();
-
-        try (Connection connection = ConnectionManager.get()) {
-            connection.createStatement().execute("CREATE TABLE IF NOT EXISTS main.users (id SERIAL PRIMARY KEY);");
-            connection.createStatement().execute("CREATE TABLE IF NOT EXISTS main.habits (id SERIAL PRIMARY KEY, name VARCHAR(255), description TEXT, frequency VARCHAR(50), user_id BIGINT REFERENCES main.users(id));");
-        }
-    }
-
-    @AfterEach
-    public void tearDown() throws SQLException {
-        try (Connection connection = ConnectionManager.get()) {
-            connection.createStatement().execute("DELETE FROM main.habits;");
-            connection.createStatement().execute("DELETE FROM main.users;");
-        }
+    public void setup() {
+        MockitoAnnotations.initMocks(this);
+        habitController = new HabitController(habitService);
+        mockMvc = MockMvcBuilders.standaloneSetup(habitController).build();
     }
 
     @Test
-    public void testCreateHabitToUser() throws SQLException {
-        User user = new User(1L, "test@gmail.com", "qwerty", Role.USER);
-        userDao.save(user);
+    public void testAddHabit() throws Exception {
+        CreateHabitDto createHabitDto = new CreateHabitDto("HabitName","Description","DAILY",3L);
 
-        CreateHabitDto createHabitDto = CreateHabitDto.builder()
-                .name("Test Habit")
-                .description("Description of test habit")
-                .frequency("DAILY")
-                .userId(user.getId())
-                .build();
-
-        habitService.createHabit(createHabitDto);
-
-        List<Habit> habits = habitService.getUserHabits(user);
-        assertEquals(1, habits.size(), "Должна быть 1 привычка для пользователя.");
-        assertEquals("Test Habit", habits.get(0).getName(), "Название привычки должно совпадать.");
+        mockMvc.perform(post("/habit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(createHabitDto)))
+                .andExpect(status().isOk());
     }
 
     @Test
-    public void testUpdateHabit() throws SQLException {
-        User user = new User(1L, "test@gmail.com", "qwerty", Role.USER);
-        userDao.save(user);
+    public void testUpdateHabit() throws Exception {
+        HabitDto habitDto = new HabitDto(5L,"UpdatedHabitName","Description", Frequency.DAILY);
 
-        CreateHabitDto createHabitDto = CreateHabitDto.builder()
-                .name("Old Habit")
-                .description("Old description")
-                .frequency("WEEKLY")
-                .userId(user.getId())
-                .build();
-
-        Habit habit = habitService.createHabit(createHabitDto);
-
-        HabitDto habitDto = HabitDto.builder()
-                .id(habit.getId())
-                .name("Updated Habit")
-                .description("Updated description")
-                .frequency(Frequency.DAILY)
-                .build();
-
-        habitService.update(habitDto);
-
-        List<Habit> habits = habitService.getUserHabits(user);
-        assertEquals(1, habits.size(), "Должна быть 1 привычка для пользователя.");
-        assertEquals("Updated Habit", habits.get(0).getName(), "Название привычки должно быть обновлено.");
+        mockMvc.perform(put("/habit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(habitDto)))
+                .andExpect(status().isOk());
     }
 
     @Test
-    public void testDeleteHabit() throws SQLException {
-        User user = new User(1L, "test@gmail.com", "qwerty", Role.USER);
-        userDao.save(user);
+    public void testGetAllUserHabit() throws Exception {
+        User user = new User(10L,"username","password", Role.USER);
+        List<Habit> habitList = new ArrayList<>();
 
-        CreateHabitDto createHabitDto = CreateHabitDto.builder()
-                .name("Habit to Delete")
-                .description("This habit will be deleted.")
-                .frequency("MONTHLY")
-                .userId(user.getId())
-                .build();
+        when(habitService.getUserHabits(user)).thenReturn(habitList);
+        mockMvc.perform(get("/habit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(user)))
+                .andExpect(status().isOk());
 
-        Habit habit = habitService.createHabit(createHabitDto);
-
-        habitService.delete(habit.getId());
-        List<Habit> habits = habitService.getUserHabits(user);
-        assertTrue(habits.isEmpty(), "Список привычек должен быть пустым.");
     }
 
     @Test
-    public void testGetAllUserHabits() throws SQLException {
-        User user = new User(1L, "test@gmail.com", "qwerty", Role.USER);
-        userDao.save(user);
+    public void testDeleteHabit() throws Exception {
+        Long id = 1L;
+        when(habitService.containById(id)).thenReturn(true);
 
-        CreateHabitDto createHabitDto1 = CreateHabitDto.builder()
-                .name("First Habit")
-                .description("Description of first habit")
-                .frequency("DAILY")
-                .userId(user.getId())
-                .build();
-
-        CreateHabitDto createHabitDto2 = CreateHabitDto.builder()
-                .name("Second Habit")
-                .description("Description of second habit")
-                .frequency("WEEKLY")
-                .userId(user.getId())
-                .build();
-
-        habitService.createHabit(createHabitDto1);
-        habitService.createHabit(createHabitDto2);
-
-        List<Habit> habits = habitService.getUserHabits(user);
-        assertEquals(2, habits.size(), "Должно быть 2 привычки для пользователя.");
+        mockMvc.perform(delete("/habit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(id)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Привычка удалена"));
     }
-
 }

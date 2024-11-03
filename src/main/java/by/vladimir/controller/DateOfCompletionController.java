@@ -3,123 +3,51 @@ package by.vladimir.controller;
 import by.vladimir.dto.CreateDateOfComplDto;
 import by.vladimir.dto.DateOfCompletionDto;
 import by.vladimir.entity.DateOfCompletion;
-import by.vladimir.entity.User;
 import by.vladimir.service.DateOfCompletionService;
-import by.vladimir.service.HabitService;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Scanner;
-
+@Controller
 public class DateOfCompletionController {
-    private static final DateOfCompletionController INSTANCE = new DateOfCompletionController();
 
-    private DateOfCompletionController() {
+    private DateOfCompletionService dateOfCompletionService;
+
+    @Autowired
+    public DateOfCompletionController(DateOfCompletionService dateOfCompletionService) {
+        this.dateOfCompletionService = dateOfCompletionService;
     }
 
-    public static DateOfCompletionController getInstance() {
-        return INSTANCE;
+    @ApiOperation(value = "Create Date", notes = "Create date of completion")
+    @PostMapping("/date")
+    public void createDateOfCompletion(@RequestBody CreateDateOfComplDto createDateOfComplDto){
+        dateOfCompletionService.createDateOfCompletion(createDateOfComplDto);
     }
 
-    private final HabitController habitController = HabitController.getInstance();
-    private final DateOfCompletionService dateOfCompletionService = DateOfCompletionService.getInstance();
-    private final HabitService habitService = HabitService.getInstance();
+    @ApiOperation(value = "Update Date", notes = "Update date of completion")
+    @PutMapping("/date")
+    public void updateDateOfCompletion(@RequestBody DateOfCompletionDto dateOfCompletionDto){
+        dateOfCompletionService.update(dateOfCompletionDto);
+    }
 
-    /**
-     *
-     * @param user
-     * Принимает user для нахождения его привычек и добавления в привычку даты
-     */
-    public void createDateToHabit(User user) {
-        habitController.getAllUserHabits(user);
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Введите номер привычки");
-        Long id = scanner.nextLong();
-        if (habitService.containById(id)) {
-            List<DateOfCompletion> dateList = dateOfCompletionService.findByHabitId(id);
-            System.out.println(dateList);
-            System.out.println("Введите дату в формате YYYY-MM-dd");
-            String date = scanner.next();
-            CreateDateOfComplDto dateDto = CreateDateOfComplDto.builder()
-                    .date(date)
-                    .habitId(id)
-                    .build();
-            dateOfCompletionService.createDateOfCompletion(dateDto);
-        } else {
-            System.out.println("Привычки с таким id нет");
+    @ApiOperation(value = "Delete Date", notes = "Delete date of completion")
+    @DeleteMapping("/date")
+    public ResponseEntity<String> deleteDateOfCompletion(@RequestBody Long id){
+        if(dateOfCompletionService.containById(id)){
+            dateOfCompletionService.delete(id);
+            return ResponseEntity.status(HttpStatus.OK).body("Дата удалена");
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Дата не найдена");
         }
     }
 
-    /**
-     *
-     * @param user
-     * Принимает user для получения привычек и обновления даты у выбранной привычки
-     */
-    public void updateDate(User user) {
-        habitController.getAllUserHabits(user);
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Введите номер привычки");
-        Long id = scanner.nextLong();
-        if (habitService.containById(id)) {
-            List<DateOfCompletion> dateList = dateOfCompletionService.findByHabitId(id);
-            System.out.println(dateList);
-            System.out.println("Введите номер даты");
-            Long idDate = scanner.nextLong();
-            if (dateOfCompletionService.containById(idDate)) {
-                System.out.println("Введите новую дату");
-                String date = scanner.next();
-                DateOfCompletionDto dateUpdateDto = DateOfCompletionDto
-                        .builder()
-                        .id(idDate)
-                        .date(date)
-                        .build();
-                dateOfCompletionService.update(dateUpdateDto);
-            } else {
-                System.out.println("Привычки с таким id нет");
-            }
-        } else {
-            System.out.println("Даты с таким id не существует");
-        }
-
+    @ApiOperation(value = "Get all Date", notes = "Get all date of completion of habit")
+    @GetMapping("/date")
+    public void getAllHabitDate(@RequestBody Long id){
+        dateOfCompletionService.findByHabitId(id);
     }
-
-    /**
-     *
-     * @param user
-     * Принимает user для удаления даты выполнения конкретной привычки
-     */
-    public void deleteDate(User user) {
-        habitController.getAllUserHabits(user);
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Введите номер привычки");
-        Long id = scanner.nextLong();
-        if (habitService.containById(id)) {
-            List<DateOfCompletion> dateList = dateOfCompletionService.findByHabitId(id);
-            System.out.println(dateList);
-            System.out.println("Введите номер даты");
-            Long idDate = scanner.nextLong();
-            if (dateOfCompletionService.containById(idDate)) {
-                dateOfCompletionService.delete(idDate);
-            } else {
-                System.out.println("Даты с таким id не существует");
-            }
-        } else {
-            System.out.println("Привычки с таким id нет");
-        }
-    }
-
-    /**
-     *
-     * @param user
-     * Выводит на консоль все даты конкретной привычки
-     */
-    public void showAllDateOfHabit(User user) {
-        habitController.getAllUserHabits(user);
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Введите номер привычки");
-        Long id = scanner.nextLong();
-        List<DateOfCompletion> dateList = dateOfCompletionService.findByHabitId(id);
-        System.out.println(dateList);
-    }
-
-
 }

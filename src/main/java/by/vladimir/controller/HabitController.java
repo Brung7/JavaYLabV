@@ -2,106 +2,57 @@ package by.vladimir.controller;
 
 import by.vladimir.dto.CreateHabitDto;
 import by.vladimir.dto.HabitDto;
-import by.vladimir.entity.Frequency;
 import by.vladimir.entity.Habit;
 import by.vladimir.entity.User;
 import by.vladimir.service.HabitService;
+import by.vladimir.service.UserService;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Scanner;
 
+@RestController
 public class HabitController {
-    private static final HabitController INSTANCE = new HabitController();
-    private final HabitService habitService = HabitService.getInstance();
 
-    /**
-     *
-     * @param user
-     * Выводит на консоль все привычки конкретного пользователя
-     */
-    public void getAllUserHabits(User user) {
-        List<Habit> habitList = habitService.getUserHabits(user);
-        if (habitList.isEmpty()) {
-            System.out.println("List of habits is empty");
-        } else {
-            for (Habit habit : habitList) {
-                System.out.println(habit);
-            }
-        }
+    private HabitService habitService;
+
+    @Autowired
+    public HabitController(HabitService habitService) {
+        this.habitService = habitService;
     }
 
-    /**
-     *
-     * @param user
-     * Создает привычки и закрепляет за конкретным пользователем
-     */
-    public void createHabitToUser(User user) {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Введите название");
-        String name = scanner.nextLine();
-        System.out.println("Введите описание");
-        String description = scanner.nextLine();
-        System.out.println("Введите частоту выполнения");
-        String frequency = scanner.nextLine();
-        CreateHabitDto createHabitDto = CreateHabitDto.builder()
-                .name(name)
-                .description(description)
-                .frequency(frequency)
-                .userId(user.getId())
-                .build();
+    @ApiOperation(value = "Create habit", notes = "Create new habit")
+    @PostMapping("/habit")
+    public void addHabit(@RequestBody CreateHabitDto createHabitDto) {
         habitService.createHabit(createHabitDto);
     }
 
-    /**
-     *
-     * @param user
-     * Позволяет пользователю обновить привычку
-     */
-    public void updateHabit(User user) {
-        getAllUserHabits(user);
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Введите номер привычки");
-        Long id = scanner.nextLong();
-        if (habitService.containById(id)) {
-            System.out.println("Введите новое название");
-            String name = scanner.next();
-            System.out.println("Введите новое описание");
-            String description = scanner.next();
-            System.out.println("Введите новою частоту");
-            String frequency = scanner.next();
-            HabitDto habitDto = HabitDto.builder()
-                    .id(id)
-                    .name(name)
-                    .description(description)
-                    .frequency(Frequency.valueOf(frequency))
-                    .build();
-            habitService.update(habitDto);
-        } else {
-            System.out.println("Привычки с таким номером нет");
-        }
+    @ApiOperation(value = "Update habit", notes = "Update habit")
+    @PutMapping("/habit")
+    public void updateHabit(@RequestBody HabitDto habitDto) {
+        habitService.update(habitDto);
     }
 
-    /**
-     *
-     * @param user
-     * Позволяет пользователю удлалить привычку
-     */
-    public void deleteHabit(User user) {
-        getAllUserHabits(user);
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Введите номер привычки, которую хотитет удалить");
-        Long id = scanner.nextLong();
+    @ApiOperation(value = "Get all habits", notes = "Get all user's habits")
+    @GetMapping("/habit")
+    public ResponseEntity<List<Habit>> getAllUserHabit(@RequestBody User user) {
+        List<Habit> habitList = habitService.getUserHabits(user);
+        return ResponseEntity.ok(habitList);
+    }
+
+    @ApiOperation(value = "Delete habit", notes = "Delete habit")
+    @DeleteMapping("/habit")
+    public ResponseEntity<String> deleteHabit(@RequestBody Long id) {
         if (habitService.containById(id)) {
             habitService.delete(id);
+            return ResponseEntity.status(HttpStatus.OK).body("Привычка удалена");
         } else {
-            System.out.println("Привычки с таким номером нет");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Привычка не найдена");
         }
     }
 
-    private HabitController() {
-    }
-
-    public static HabitController getInstance() {
-        return INSTANCE;
-    }
 }
