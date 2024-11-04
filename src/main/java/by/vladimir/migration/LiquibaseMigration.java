@@ -1,6 +1,7 @@
 package by.vladimir.migration;
 
 import by.vladimir.utils.ConnectionManager;
+import by.vladimir.utils.PropertyUtils;
 import liquibase.Liquibase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
@@ -8,40 +9,37 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.DatabaseException;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Класс для уприавления миграциями.
  */
+@Component
 public class LiquibaseMigration {
 
-    private static String changeLogPath;
+    private ConnectionManager connectionManager;
 
-    public LiquibaseMigration(){
-        readChangelogFilePathFromYaml();
-    }
-    /**
-     * Метод читает файл application.yml.
-     * Берет из него changelogFilePath.
-     * @return changelogFilePath.
-     */
-    public void readChangelogFilePathFromYaml() {
-        Yaml yaml = new Yaml();
-        try (InputStream in = LiquibaseMigration.class.getClassLoader().getResourceAsStream("application.yml")) {
-            Map<String, Object> yamlData = yaml.load(in);
-            Map<String, String> yamlConf = (Map<String, String>) yamlData.get("liquibase");
-            this.changeLogPath = yamlConf.get("changelogFilePath");
-        } catch (Exception e) {
-            e.printStackTrace();
+    private PropertyUtils propertyUtils;
 
-        }
+    @Autowired
+    public LiquibaseMigration(ConnectionManager connectionManager, PropertyUtils propertyUtils) {
+        this.connectionManager = connectionManager;
+        this.propertyUtils = propertyUtils;
     }
+
 
     /**
      * Подключается к базе данных.
@@ -49,10 +47,10 @@ public class LiquibaseMigration {
      * Выводит в консоль сообщение о выполнени миграций
      * или выводит исключение.
      */
-    public static void runMigration() {
+    public void runMigration() {
+        Properties properties = propertyUtils.readYamlFile();
+        String changeLogFilePath = properties.getProperty("liquibase.changelogFilePath");
 
-        ConnectionManager connectionManager = new ConnectionManager();
-        String changeLogFilePath = changeLogPath;
 
         try (Connection connection = connectionManager.get()) {
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
@@ -62,6 +60,7 @@ public class LiquibaseMigration {
             System.out.println("Migrations is completed successfully ");
 
         } catch (SQLException | LiquibaseException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }

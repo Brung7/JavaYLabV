@@ -5,7 +5,11 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
         logicalFilePath="db/changelog.xml">
-    <changeSet id="007-insert-user" author="Ovsiannikov Vladimir">
+
+    <changeSet id="008-insert-user" author="Ovsiannikov Vladimir">
+        <preConditions onFail="MARK_RAN">
+                <tableIsEmpty schemaName="main" tableName="users"/>
+        </preConditions>
         <insert schemaName="main" tableName="users">
             <column name="id" valueNumeric="1"/>
             <column name="email" value="vladimir.@mail.ru"/>
@@ -26,7 +30,10 @@
         </insert>
     </changeSet>
 
-    <changeSet id="008-insert-habit" author="Ovsiannikov Vladimir">
+    <changeSet id="009-insert-habit" author="Ovsiannikov Vladimir">
+        <preConditions onFail="MARK_RAN">
+                <tableIsEmpty schemaName="main" tableName="habits"/>
+        </preConditions>
         <insert schemaName="main" tableName="habits">
             <column name="id" valueNumeric="1"/>
             <column name="name" value="Exercise"/>
@@ -64,7 +71,10 @@
         </insert>
     </changeSet>
 
-    <changeSet id="009-insert-date" author="Ovsiannikov Vladimir">
+    <changeSet id="010-insert-date" author="Ovsiannikov Vladimir">
+        <preConditions onFail="MARK_RAN">
+                <tableIsEmpty schemaName="main" tableName="dates"/>
+        </preConditions>
         <insert schemaName="main" tableName="dates">
             <column name="id" valueNumeric="1"/>
             <column name="habit_id" value="1"/>
