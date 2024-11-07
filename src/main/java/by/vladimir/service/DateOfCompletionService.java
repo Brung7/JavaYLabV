@@ -2,12 +2,15 @@ package by.vladimir.service;
 
 import by.vladimir.dao.DateOfCompletionDao;
 import by.vladimir.dto.CreateDateOfComplDto;
+import by.vladimir.dto.CreateHabitDto;
 import by.vladimir.dto.DateOfCompletionDto;
 import by.vladimir.entity.DateOfCompletion;
 import by.vladimir.mapper.DateOfCompletionMapper;
 import by.vladimir.validator.CreateDateValidator;
 import by.vladimir.validator.UpdateDateValidator;
 import by.vladimir.validator.ValidationResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,37 +20,21 @@ import java.util.Optional;
 /**
  * Класс service ответственный за работу с датами выполнения.
  */
+@Service
 public class DateOfCompletionService {
+    private final DateOfCompletionDao dateDao;
+    private final CreateDateValidator createDateValidator;
+    private final DateOfCompletionMapper dateMapper;
+    private final UpdateDateValidator updateDateValidator;
 
-    /**
-     * Singleton для DateOfCompletionService.
-     */
-    private static final DateOfCompletionService INSTANCE = new DateOfCompletionService();
 
-    /**
-     * Сущность DateOfCompletionDao.
-     */
-    private static final DateOfCompletionDao dateDao = DateOfCompletionDao.getInstance();
-
-    /**
-     * Сущность CreateDateValidator.
-     */
-    private static  final CreateDateValidator createDateValidator = CreateDateValidator.getInstance();
-
-    /**
-     * Сущность UpdateDateValidator.
-     */
-    private static  final UpdateDateValidator updateDateValidator = UpdateDateValidator.getInstance();
-
-    /**
-     * Сущность DateOfCompletionMapper
-     */
-    private static final DateOfCompletionMapper dateMapper = DateOfCompletionMapper.INSTANCE;
-
-    /**
-     * Приватный конструктор.
-     */
-    private DateOfCompletionService() {
+    @Autowired
+    public DateOfCompletionService(DateOfCompletionDao dateDao, CreateDateValidator createDateValidator, DateOfCompletionMapper dateMapper,
+                                   UpdateDateValidator updateDateValidator) {
+        this.dateDao = dateDao;
+        this.createDateValidator = createDateValidator;
+        this.dateMapper = dateMapper;
+        this.updateDateValidator = updateDateValidator;
     }
 
     /**
@@ -133,11 +120,4 @@ public class DateOfCompletionService {
         return date.isPresent();
     }
 
-    /**
-     * Возвращает сущность DateOfCompletionService.
-     * @return сущность DateOfCompletionService.
-     */
-    public static DateOfCompletionService getInstance() {
-        return INSTANCE;
-    }
 }

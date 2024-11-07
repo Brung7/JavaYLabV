@@ -1,67 +1,73 @@
 package by.vladimir.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import liquibase.database.DatabaseConnection;
+import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.YamlMapFactoryBean;
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+/**
+ * Класс для подключения к базе данных.
+ */
+@Component
 public class ConnectionManager {
-    private static final String URL_KEY = "db.url";
-    private static final String USERNAME_KEY = "db.username";
-    private static final String PASSWORD_KEY = "db.password";
-    private static final int DEFAULT_POOL_SIZE = 60;
-    private static final String POOL_SIZE_KEY = "db.pool.size";
-    private static BlockingQueue<Connection> pool;
 
-    static {
-        loadDriver();
-        initConnectionPool();
-    }
+    private PropertyUtils propertyUtils;
 
-    private static void loadDriver() {
+    @Autowired
+    public ConnectionManager(PropertyUtils propertyUtils) {
+        this.propertyUtils = propertyUtils;
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Неудалось загрузить драйвер PostgreSQL", e);
         }
     }
 
-    private static void initConnectionPool() {
-        String poolSize = PropertiesUtil.get(POOL_SIZE_KEY);
-        int size = poolSize == null ? DEFAULT_POOL_SIZE : Integer.parseInt(poolSize);
-        pool = new ArrayBlockingQueue<>(size);
-        for (int i = 0; i < size; i++) {
-            Connection connection = open();
-            var proxyConnection = (Connection) Proxy.newProxyInstance(ConnectionManager.class.getClassLoader(), new Class[]{Connection.class},
-                    (proxy, method, args) -> method.getName().equals("close") ?
-                            pool.add((Connection) proxy) :
-                            method.invoke(connection, args));
-            pool.add(proxyConnection);
-        }
-    }
+    /**
+     * Ссылка для подключения к базе данных.
+     */
+    private String url;
 
-    public static Connection get() {
-        try {
-            return pool.take();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    /**
+     * Имя пользователя базы данных.
+     */
+    private String username;
 
-    private static Connection open() {
-        try {
-            return DriverManager.getConnection(
-                    PropertiesUtil.get(URL_KEY),
-                    PropertiesUtil.get(USERNAME_KEY),
-                    PropertiesUtil.get(PASSWORD_KEY));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    /**
+     * Пароль для подключения к базе данных.
+     */
+    private String password;
 
-    private ConnectionManager() {
-
+    /**
+     * Получает из Properties данные для подключения к базе данных
+     * и возвращает connection.
+     * @return connection к базе данных.
+     * @throws SQLException
+     */
+    public Connection get() throws SQLException {
+        Properties properties = propertyUtils.readYamlFile();
+        url = properties.getProperty("database.url");
+        username = properties.getProperty("database.username");
+        password = properties.getProperty("database.password");
+        return DriverManager.getConnection(url,username,password);
     }
 }

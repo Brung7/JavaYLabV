@@ -9,43 +9,38 @@ import by.vladimir.mapper.HabitMapper;
 import by.vladimir.validator.CreateHabitValidator;
 import by.vladimir.validator.UpdateHabitValidator;
 import by.vladimir.validator.ValidationResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 /**
  * Класс service ответственный за работу с привычками.
  */
+@Service
 public class HabitService {
 
-    /**
-     * Singleton для HabitService
-     */
-    private static final HabitService INSTANCE = new HabitService();
+    private HabitDao habitDao;
+    private HabitMapper habitMapper;
+    private CreateHabitValidator habitValidator;
+    private UpdateHabitValidator updateHabitValidator;
 
-    /**
-     * Сущность HabitDao
-     */
-    private final HabitDao habitDao = HabitDao.getInstance();
+    @Autowired
+    public HabitService(HabitDao habitDao, HabitMapper habitMapper, CreateHabitValidator habitValidator, UpdateHabitValidator updateHabitValidator) {
+        this.habitDao = habitDao;
+        this.habitMapper = habitMapper;
+        this.habitValidator = habitValidator;
+        this.updateHabitValidator = updateHabitValidator;
+    }
 
-    /**
-     * Сущность HabitMapper
-     */
-    private final HabitMapper habitMapper = HabitMapper.INSTANCE;
-
-    /**
-     * Сущность CreateHabitValidator
-     */
-    private final CreateHabitValidator habitValidator = CreateHabitValidator.getInstance();
-
-    /**
-     * Сущность UpdateHabitValidator
-     */
-    private final UpdateHabitValidator updaterHabitValidator = UpdateHabitValidator.getInstance();
-
-    /**
-     * Приватный конструктор HabitService
-     */
-    private HabitService() {
+    public Habit getHabitById(Long id){
+        Optional<Habit> habitOptional = habitDao.findById(id);
+        if(habitOptional.isPresent()){
+            return habitOptional.get();
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -99,7 +94,7 @@ public class HabitService {
      * @param habitDto - Dto получаемой привычки
      */
     public void update(HabitDto habitDto) {
-        ValidationResult validationResult = updaterHabitValidator.isValid(habitDto);
+        ValidationResult validationResult = updateHabitValidator.isValid(habitDto);
         if(!validationResult.isValid()){
             throw new IllegalArgumentException("Invalid habitDto");
         }
@@ -134,11 +129,4 @@ public class HabitService {
         habitDao.delete(id);
     }
 
-    /**
-     * Возвращает сущность HabitService.
-     * @return сущность HabitService.
-     */
-    public static HabitService getInstance() {
-        return INSTANCE;
-    }
 }

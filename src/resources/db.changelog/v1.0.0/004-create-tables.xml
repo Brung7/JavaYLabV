@@ -73,5 +73,28 @@
             </column>
         </createTable>
     </changeSet>
-
+    <changeSet id="007-create-table-audit" author="Ovsiannikov Vladimir">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="audit" tableName="audit"/>
+            </not>
+        </preConditions>
+        <createTable schemaName="audit" tableName="audit">
+            <column name="id" type="BIGINT" defaultValueComputed="nextval('audit.auditSequence')">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="method_name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="time" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="action_result" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>    

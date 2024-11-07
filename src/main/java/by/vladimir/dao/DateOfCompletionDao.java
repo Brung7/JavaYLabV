@@ -3,6 +3,8 @@ package by.vladimir.dao;
 import by.vladimir.entity.DateOfCompletion;
 import by.vladimir.utils.ConnectionManager;
 import by.vladimir.utils.DateFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
@@ -13,9 +15,17 @@ import java.util.Optional;
 /**
  * Класс для взаимодейсвия с таблицей date в базе данных
  */
+@Repository
 public class DateOfCompletionDao {
-    private static final DateOfCompletionDao INSTANCE = new DateOfCompletionDao();
-    private final DateFormatter dateFormatter = DateFormatter.getInstance();
+
+    private ConnectionManager connectionManager;
+    private DateFormatter dateFormatter;
+    @Autowired
+    public DateOfCompletionDao(ConnectionManager connectionManager, DateFormatter dateFormatter) {
+        this.connectionManager = connectionManager;
+        this.dateFormatter = dateFormatter;
+    }
+
     private static final String SAVE_SQL = """
             INSERT INTO main.dates (completion_date,habit_id) VALUES (?,?)
             """;
@@ -44,7 +54,7 @@ public class DateOfCompletionDao {
      * @return возвращет созданный объект
      */
     public DateOfCompletion save(DateOfCompletion date){
-        try (Connection connection = ConnectionManager.get();
+        try (Connection connection = connectionManager.get();
              PreparedStatement statement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)){
             statement.setDate(1, dateFormatter.convertSqlToUtil(date.getDate()));
             statement.setLong(2,date.getHabitId());
@@ -66,7 +76,7 @@ public class DateOfCompletionDao {
      */
     public void update(DateOfCompletion date){
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        try (Connection connection = ConnectionManager.get();
+        try (Connection connection = connectionManager.get();
         PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)){
             statement.setDate(1,dateFormatter.convertSqlToUtil(date.getDate()));
             statement.setLong(2,date.getId());
@@ -82,7 +92,7 @@ public class DateOfCompletionDao {
      * @param id - индификатор записи в базе данных
      */
     public void delete(Long id){
-        try (Connection connection = ConnectionManager.get();
+        try (Connection connection = connectionManager.get();
         PreparedStatement statement = connection.prepareStatement(DELETE_SQL)){
             statement.setLong(1,id);
             statement.executeUpdate();
@@ -100,7 +110,7 @@ public class DateOfCompletionDao {
      */
     public List<DateOfCompletion> findByHabitId(Long habitId){
         List<DateOfCompletion> listDate = new ArrayList<>();
-        try (Connection connection = ConnectionManager.get();
+        try (Connection connection = connectionManager.get();
         PreparedStatement statement = connection.prepareStatement(FIND_BY_HABIT)){
             statement.setLong(1,habitId);
             ResultSet result = statement.executeQuery();
@@ -137,7 +147,7 @@ public class DateOfCompletionDao {
      * @return - возвращает Optional объекта
      */
     public Optional<DateOfCompletion> findById(Long id){
-        try (Connection connection = ConnectionManager.get();
+        try (Connection connection = connectionManager.get();
         PreparedStatement statement = connection.prepareStatement(FIND_BY_ID)){
             statement.setLong(1,id);
             ResultSet result = statement.executeQuery();
@@ -149,9 +159,5 @@ public class DateOfCompletionDao {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-    }
-    private DateOfCompletionDao(){}
-    public static DateOfCompletionDao getInstance(){
-        return INSTANCE;
     }
 }

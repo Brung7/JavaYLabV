@@ -2,6 +2,8 @@ package by.vladimir.dao;
 import by.vladimir.entity.Frequency;
 import by.vladimir.entity.Habit;
 import by.vladimir.utils.ConnectionManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.*;
@@ -9,8 +11,15 @@ import java.util.*;
 /**
  * Класс для взаимодействия с таблицей habit в базе данных
  */
+@Repository
 public class HabitDao {
-    private static final HabitDao INSTANCE = new HabitDao();
+
+    private ConnectionManager connectionManager;
+
+    @Autowired
+    public HabitDao(ConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
+    }
 
     private static final String SAVE_SQL = """
             INSERT INTO main.habits (name, description, frequency, user_id) VALUES (?,?,?,?)
@@ -42,7 +51,7 @@ public class HabitDao {
      * @return возвращет созданный объект
      */
     public Habit save(Habit habit){
-        try(Connection connection = ConnectionManager.get();
+        try(Connection connection = connectionManager.get();
             PreparedStatement statement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1,habit.getName());
             statement.setString(2, habit.getDescription());
@@ -66,7 +75,7 @@ public class HabitDao {
      * @param id - индификатор привычки
      */
     public void delete(Long id){
-        try(Connection connection = ConnectionManager.get();
+        try(Connection connection = connectionManager.get();
         PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
             statement.setLong(1,id);
         statement.executeUpdate();
@@ -85,7 +94,7 @@ public class HabitDao {
      * @return возвращает Optional полученного объекта
      */
     public Optional<Habit> findById(Long id){
-        try(Connection connection = ConnectionManager.get();
+        try(Connection connection = connectionManager.get();
         PreparedStatement statement = connection.prepareStatement(FIND_BY_ID_SQL)) {
             statement.setLong(1, id);
             ResultSet result = statement.executeQuery();
@@ -125,7 +134,7 @@ public class HabitDao {
      */
 
     public void update(Habit habit){
-        try (Connection connection = ConnectionManager.get();
+        try (Connection connection = connectionManager.get();
         PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)){
             statement.setString(1,habit.getName());
             statement.setString(2,habit.getDescription());
@@ -147,7 +156,7 @@ public class HabitDao {
      * @return возвращает лист полученных объектов.
      */
     public List<Habit> findByUserId(Long userId) {
-        try (Connection connection = ConnectionManager.get();
+        try (Connection connection = connectionManager.get();
              PreparedStatement statement = connection.prepareStatement(FIND_BY_USERID_SQL)) {
             statement.setLong(1, userId);
             List<Habit> habitList = new ArrayList<>();
@@ -161,10 +170,5 @@ public class HabitDao {
         }
     }
 
-    private HabitDao(){
-    }
-    public static HabitDao getInstance(){
-        return INSTANCE;
-    }
 
 }

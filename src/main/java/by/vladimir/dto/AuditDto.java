@@ -4,14 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CreateUserDto {
-     String email;
-     String password;
-     String role;
+public class AuditDto {
+    private String username;
+    private String methodName;
+    private LocalDateTime time;
+    private String actionResult;
 }

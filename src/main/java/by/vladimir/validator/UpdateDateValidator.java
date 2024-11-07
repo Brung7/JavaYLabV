@@ -2,14 +2,10 @@ package by.vladimir.validator;
 
 import by.vladimir.dto.CreateHabitDto;
 import by.vladimir.dto.DateOfCompletionDto;
+import org.springframework.stereotype.Component;
 
+@Component
 public class UpdateDateValidator implements Validator<DateOfCompletionDto>{
-
-    private static final UpdateDateValidator INSTANCE = new UpdateDateValidator();
-
-    public static UpdateDateValidator getInstance(){
-        return INSTANCE;
-    }
 
     @Override
     public ValidationResult isValid(DateOfCompletionDto dateOfCompletionDto) {

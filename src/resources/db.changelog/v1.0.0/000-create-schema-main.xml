@@ -10,4 +10,9 @@
             CREATE SCHEMA IF NOT EXISTS main;
         </sql>
     </changeSet>
+    <changeSet id="001-create-schema-main" author="Ovsiannikov Vladimir">
+        <sql>
+            CREATE SCHEMA IF NOT EXISTS audit;
+        </sql>
+    </changeSet>
 </databaseChangeLog>

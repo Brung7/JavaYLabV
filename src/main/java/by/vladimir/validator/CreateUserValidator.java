@@ -2,13 +2,10 @@ package by.vladimir.validator;
 
 import by.vladimir.dto.CreateUserDto;
 import by.vladimir.entity.Role;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CreateUserValidator implements Validator<CreateUserDto> {
-
-    private static final CreateUserValidator INSTANCE = new CreateUserValidator();
-
-    private CreateUserValidator() {
-    }
 
     @Override
     public ValidationResult isValid(CreateUserDto userDto) {
@@ -36,7 +33,4 @@ public class CreateUserValidator implements Validator<CreateUserDto> {
         return validationResult;
     }
 
-    public static CreateUserValidator getInstance() {
-        return INSTANCE;
-    }
 }

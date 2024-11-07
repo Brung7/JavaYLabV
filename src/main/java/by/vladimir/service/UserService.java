@@ -7,6 +7,8 @@ import by.vladimir.dao.UserDao;
 import by.vladimir.mapper.UserMapper;
 import by.vladimir.validator.CreateUserValidator;
 import by.vladimir.validator.ValidationResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,31 +16,21 @@ import java.util.Optional;
 /**
  * Класс service ответственный за работу с пользователем.
  */
+@Service
 public class UserService {
 
-    /**
-     * Singleton для UserService.
-     */
-    private static final UserService INSTANCE = new UserService();
+    private UserDao userDao;
+    private CreateUserValidator createUserValidator;
+    private UserMapper userMapper;
 
-    /**
-     * Приватный конструктор.
-     */
-    private UserService() {
+    @Autowired
+    public UserService(UserDao userDao, CreateUserValidator createUserValidator, UserMapper userMapper) {
+        this.userDao = userDao;
+        this.createUserValidator = createUserValidator;
+        this.userMapper = userMapper;
     }
 
-    /**
-     * Сущность userDao.
-     */
-    UserDao userDao = UserDao.getInstance();
-    /**
-     * Сущность createUserValidator.
-     */
-    CreateUserValidator createUserValidator = CreateUserValidator.getInstance();
-    /**
-     * Сущность userMapper.
-     */
-    UserMapper userMapper = UserMapper.INSTANCE;
+
 
     /**
      * Получает на вход пользователя.
@@ -77,6 +69,16 @@ public class UserService {
         }
     }
 
+    public User findById(Long id){
+        Optional<User> optionalUser = userDao.findById(id);
+        if(optionalUser.isPresent()){
+            return optionalUser.get();
+        }
+        else {
+            return null;
+        }
+    }
+
     /**
      * Получает на вход email пользователя.
      * Проверяет существует ли пользователь с таким email.
@@ -107,11 +109,4 @@ public class UserService {
         return userDtos;
     }
 
-    /**
-     * Возвращает сущность UserService
-     * @return сущность UserService
-     */
-    public static UserService getInstance(){
-        return INSTANCE;
-    }
 }

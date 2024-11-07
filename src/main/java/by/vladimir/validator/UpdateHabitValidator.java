@@ -2,14 +2,10 @@ package by.vladimir.validator;
 
 import by.vladimir.dto.HabitDto;
 import by.vladimir.entity.Frequency;
+import org.springframework.stereotype.Component;
 
+@Component
 public class UpdateHabitValidator implements Validator<HabitDto>{
-
-    private static final UpdateHabitValidator INSTANCE = new UpdateHabitValidator();
-
-    public static UpdateHabitValidator getInstance(){
-        return INSTANCE;
-    }
 
     @Override
     public ValidationResult isValid(HabitDto habitDto) {

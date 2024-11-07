@@ -1,18 +1,13 @@
 package by.vladimir.utils;
 
+import org.springframework.stereotype.Component;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+@Component
 public class DateFormatter {
-    private static final DateFormatter INSTANCE = new DateFormatter();
-
-    private DateFormatter() {
-    }
-
-    public static DateFormatter getInstance() {
-        return INSTANCE;
-    }
 
     public Date formatterStrToDate(String dateString) {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");

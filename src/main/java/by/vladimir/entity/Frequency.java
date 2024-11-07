@@ -1,7 +1,10 @@
 package by.vladimir.entity;
 
+import org.springframework.stereotype.Component;
+
 import java.util.Arrays;
 import java.util.Optional;
+
 
 public enum Frequency {
     DAILY,
