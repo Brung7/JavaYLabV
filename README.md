@@ -1,15 +1,6 @@
-Необходимо обновить сервис согласно следующим требованиям и ограничениям. 
 
+[Homework №1](https://github.com/Brung7/JavaYLabV/pull/1)<br />
+[Homework №2](https://github.com/Brung7/JavaYLabV/pull/2)<br />
+[Homework №3](https://github.com/Brung7/JavaYLabV/pull/3)<br />
+[Homework №4](https://github.com/Brung7/JavaYLabV/pull/4)<br />
 
-
-Требования: 
-
-- Java-конфигурация приложения - Кастомные конфигурационные файлы заменить на application.yml 
-
-- Удалить сервлеты, реализовать Rest-контроллеры (Spring MVC) - Swagger + Swagger UI 
-
-- Аспекты переписать на Spring AOP 
-
-- Внедрение зависимостей ТОЛЬКО через конструктор - Удалить всю логику создания сервисов, репозиториев и тд. Приложение должно полностью управляться спрингом 
-
-- Добавить тесты на контроллеры (WebMVC) 
