@@ -1,6 +1,5 @@
 package by.vladimir.validator;
 
-import by.vladimir.dto.CreateHabitDto;
 import by.vladimir.dto.DateOfCompletionDto;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +11,7 @@ public class UpdateDateValidator implements Validator<DateOfCompletionDto>{
         ValidationResult validationResult = new ValidationResult();
         if(dateOfCompletionDto.getDate().isEmpty()){
             validationResult.add(Error.of("invalid date","Invalid date"));
+            throw new IllegalArgumentException("Invalid date");
         }
         return validationResult;
     }

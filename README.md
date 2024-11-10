@@ -1,6 +1,11 @@
+Необходимо обновить сервис, который вы разработали в первом задании согласно следующим требованиям и ограничениям
 
-[Homework №1](https://github.com/Brung7/JavaYLabV/pull/1)<br />
-[Homework №2](https://github.com/Brung7/JavaYLabV/pull/2)<br />
-[Homework №3](https://github.com/Brung7/JavaYLabV/pull/3)<br />
-[Homework №4](https://github.com/Brung7/JavaYLabV/pull/4)<br />
+Требования:
 
+- Spring Boot 3.2.0 с использованием необходимых стартеров
+
+- Обновить тесты
+
+- Аспекты аудита и логирования вынести в стартер, сделать отдельным модулем. Один стартер должен автоматически подключаться, второй через аннотацию @EnableXXX 
+
+- Swagger -> SpringDoc

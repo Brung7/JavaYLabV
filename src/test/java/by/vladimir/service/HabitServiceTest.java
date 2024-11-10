@@ -1,143 +1,148 @@
-//package by.vladimir.service;
-//
-//import by.vladimir.dao.HabitDao;
-//import by.vladimir.dao.UserDao;
-//import by.vladimir.dto.CreateHabitDto;
-//import by.vladimir.dto.CreateUserDto;
-//import by.vladimir.dto.HabitDto;
-//import by.vladimir.entity.Frequency;
-//import by.vladimir.entity.Habit;
-//import by.vladimir.entity.Role;
-//import by.vladimir.entity.User;
-//import by.vladimir.utils.ConnectionManager;
-//import org.junit.jupiter.api.AfterEach;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.testcontainers.containers.PostgreSQLContainer;
-//import org.testcontainers.junit.jupiter.Container;
-//import org.testcontainers.junit.jupiter.Testcontainers;
-//
-//import java.sql.Connection;
-//import java.sql.SQLException;
-//import java.util.ArrayList;
-//import java.util.Date;
-//import java.util.List;
-//import java.util.Optional;
-//
-//import static org.junit.jupiter.api.Assertions.*;
-//@Testcontainers
-//public class HabitServiceTest {
-//    @Container
-//    private static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest")
-//            .withDatabaseName("habit_tracker")
-//            .withUsername("vladimir")
-//            .withPassword("admin");
-//
-//    private HabitService habitService;
-//    private HabitDao habitDao;
-//    private UserDao userDao;
-//    private CreateHabitDto createHabitDto;
-//
-//    @BeforeEach
-//     void setUp() throws SQLException {
-//
-//        habitDao = HabitDao.getInstance();
-//        userDao =  UserDao.getInstance();
-//        habitService = HabitService.getInstance();
-//
-//        try (Connection connection = ConnectionManager.get()) {
-//            connection.createStatement().execute("CREATE TABLE IF NOT EXISTS main.users (id SERIAL PRIMARY KEY);");
-//            connection.createStatement().execute("CREATE TABLE IF NOT EXISTS main.habits (id SERIAL PRIMARY KEY, name VARCHAR(255), user_id BIGINT REFERENCES users(id));");
-//        }
-//    }
-//
-//    @AfterEach
-//     void tearDown() throws SQLException {
-//        try (Connection connection = ConnectionManager.get()) {
-//            connection.createStatement().execute("DELETE FROM main.habits;");
-//            connection.createStatement().execute("DELETE FROM main.users;");
-//
-//        }
-//    }
-//
-//    @Test
-//     void testGetUserHabits() throws SQLException {
-//
-//        User user = new User(1L,"test@gmail.com","qwerty", Role.USER);
-//        userDao.save(user);
-//
-//        Habit habit1 = new Habit(null, "Test Habit 1", "Description 1", Frequency.DAILY, user.getId());
-//        Habit habit2 = new Habit(null, "Test Habit 2", "Description 2", Frequency.WEEKLY, user.getId());
-//        habitDao.save(habit1);
-//        habitDao.save(habit2);
-//
-//        List<Habit> habits = habitService.getUserHabits(user);
-//        assertEquals(2, habits.size(), "Должно быть 2 привычки у пользователя.");
-//
-//    }
-//
-//    @Test
-//     void testCreateHabit() throws SQLException {
-//        User user = new User(1L,"test@gmail.com","qwerty", Role.USER);
-//        userDao.save(user);
-//
-//        createHabitDto = new CreateHabitDto();
-//        createHabitDto.setName("New Habit");
-//        createHabitDto.setDescription("description");
-//        createHabitDto.setFrequency(Frequency.DAILY.name());
-//        createHabitDto.setUserId(user.getId());
-//
-//        habitService.createHabit(createHabitDto);
-//
-//        List<Habit> habits = habitService.getUserHabits(user);
-//        assertEquals(1, habits.size(), "Должна быть 1 привычка у пользователя.");
-//        assertEquals("New Habit", habits.get(0).getName(), "Имя привычки должно совпадать.");
-//
-//    }
-//    @Test
-//    void testUpdate() throws SQLException {
-//        User user = new User(1L,"test@gmail.com","qwerty", Role.USER);
-//        userDao.save(user);
-//
-//        Habit habit1 = new Habit(null, "Test Habit 1", "Description 1", Frequency.DAILY, user.getId());
-//        habitDao.save(habit1);
-//
-//        HabitDto habitDto = new HabitDto();
-//        habitDto.setId(habit1.getId());
-//        habitDto.setName("Updated Habit");
-//        habitDto.setDescription("desc");
-//        habitDto.setFrequency(Frequency.WEEKLY);
-//
-//        habitService.update(habitDto);
-//
-//        Optional<Habit> updatedHabit = habitDao.findById(habit1.getId());
-//        assertTrue(updatedHabit.isPresent(), "Привычка должна существовать.");
-//        assertEquals("Updated Habit", updatedHabit.get().getName(), "Имя привычки должно быть обновлено.");
-//    }
-//    @Test
-//     void testContainById() throws SQLException {
-//        User user = new User(1L,"test@gmail.com","qwerty", Role.USER);
-//        userDao.save(user);
-//
-//        Habit habit = new Habit(null, "Test Habit 1", "Description 1", Frequency.DAILY, user.getId());
-//        habitDao.save(habit);
-//
-//        assertTrue(habitService.containById(habit.getId()), "Привычка должна существовать.");
-//
-//        assertFalse(habitService.containById(999L), "Привычка не должна существовать.");
-//    }
-//
-//    @Test
-//     void testDelete() throws SQLException {
-//        User user = new User(1L,"test@gmail.com","qwerty", Role.USER);
-//        userDao.save(user);
-//
-//        Habit habit = new Habit(null, "Test Habit 1", "Description 1", Frequency.DAILY, user.getId());
-//        habitDao.save(habit);
-//
-//        habitService.delete(habit.getId());
-//
-//        assertFalse(habitService.containById(habit.getId()), "Привычка должна быть удалена.");
-//    }
-//
-//}
+package by.vladimir.service;
+
+
+import by.vladimir.dao.HabitDao;
+import by.vladimir.dto.CreateHabitDto;
+import by.vladimir.dto.HabitDto;
+import by.vladimir.entity.Habit;
+import by.vladimir.entity.User;
+import by.vladimir.mapper.HabitMapper;
+import by.vladimir.service.implementation.HabitServiceImpl;
+import by.vladimir.validator.CreateHabitValidator;
+import by.vladimir.validator.UpdateHabitValidator;
+import by.vladimir.validator.ValidationResult;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.util.Collections;
+import java.util.List;
+
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@SpringBootTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Testcontainers
+public class HabitServiceTest {
+
+    @InjectMocks
+    private HabitServiceImpl habitService;
+
+    @Mock
+    private HabitDao habitDao;
+
+    @Mock
+    private CreateHabitValidator habitValidator;
+
+    @Mock
+    private HabitMapper habitMapper;
+
+    @Mock
+    private UpdateHabitValidator updateHabitValidator;
+
+    @Container
+    private static final PostgreSQLContainer<?> postgresqlContainer = new PostgreSQLContainer<>("postgres:latest");
+
+    @DynamicPropertySource
+    static void postgresqlProperties(DynamicPropertyRegistry registry) {
+        registry.add("database.url", postgresqlContainer::getJdbcUrl);
+        registry.add("database.username", postgresqlContainer::getUsername);
+        registry.add("database.password", postgresqlContainer::getPassword);
+    }
+
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        postgresqlContainer.start();
+    }
+
+    @Test
+    public void testGetAll() {
+
+        User user = new User();
+        user.setId(6L);
+        Habit habit1 = new Habit();
+        habit1.setName("Habit 1");
+        Habit habit2 = new Habit();
+        habit2.setName("Habit 2");
+
+        when(habitDao.findByUserId(user.getId())).thenReturn(List.of(habit1, habit2));
+
+        List<Habit> habits = habitService.getAll(user);
+
+        assertNotNull(habits);
+        assertEquals(2, habits.size());
+        assertEquals("Habit 1", habits.get(0).getName());
+        assertEquals("Habit 2", habits.get(1).getName());
+    }
+
+    @Test
+    public void testGetAll_NoHabits_ReturnsEmptyList() {
+
+        User user = new User();
+        user.setId(6L);
+        when(habitDao.findByUserId(user.getId())).thenReturn(Collections.emptyList());
+
+        List<Habit> habits = habitService.getAll(user);
+
+        assertNotNull(habits);
+        assertTrue(habits.isEmpty());
+    }
+
+    @Test
+    public void testCreate() {
+
+        CreateHabitDto createHabitDto = new CreateHabitDto();
+        createHabitDto.setName("New Habit");
+
+        Habit habit = new Habit();
+        habit.setName("New Habit");
+
+        when(habitValidator.isValid(createHabitDto)).thenReturn(new ValidationResult());
+        when(habitMapper.toHabit(createHabitDto)).thenReturn(habit);
+        when(habitDao.save(habit)).thenReturn(habit);
+
+
+        Habit createdHabit = habitService.create(createHabitDto);
+
+        assertNotNull(createdHabit);
+        assertEquals("New Habit", createdHabit.getName());
+    }
+
+
+    @Test
+    public void testUpdate() {
+
+        HabitDto habitDto = new HabitDto();
+        habitDto.setName("Updated Habit");
+
+        Habit habit = new Habit();
+        habit.setName("Updated Habit");
+
+        when(updateHabitValidator.isValid(habitDto)).thenReturn(new ValidationResult());
+        when(habitMapper.toHabitFromHabitDto(habitDto)).thenReturn(habit);
+
+        Habit updatedHabit = habitService.update(habitDto);
+
+        assertNotNull(updatedHabit);
+        assertEquals("Updated Habit", updatedHabit.getName());
+
+        verify(habitDao).update(habit);
+    }
+
+}

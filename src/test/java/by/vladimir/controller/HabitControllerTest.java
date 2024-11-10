@@ -6,83 +6,120 @@ import by.vladimir.entity.Frequency;
 import by.vladimir.entity.Habit;
 import by.vladimir.entity.Role;
 import by.vladimir.entity.User;
-import by.vladimir.service.HabitService;
+import by.vladimir.service.implementation.HabitServiceImpl;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
+
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Mockito.when;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+@SpringBootTest
+@AutoConfigureMockMvc
 public class HabitControllerTest {
 
+
     private MockMvc mockMvc;
+
     private HabitController habitController;
 
-    @Mock
-    private HabitService habitService;
+    @MockBean
+    private HabitServiceImpl habitServiceImpl;
+
+    private ObjectMapper objectMapper;
 
     @BeforeEach
-    public void setup() {
+    public void setUp(){
         MockitoAnnotations.initMocks(this);
-        habitController = new HabitController(habitService);
+        habitController = new HabitController(habitServiceImpl);
         mockMvc = MockMvcBuilders.standaloneSetup(habitController).build();
+        objectMapper = new ObjectMapper();
     }
 
     @Test
     public void testAddHabit() throws Exception {
-        CreateHabitDto createHabitDto = new CreateHabitDto("HabitName","Description","DAILY",3L);
 
-        mockMvc.perform(post("/habit")
+        CreateHabitDto createHabitDto = new CreateHabitDto("Running", "Exercise daily","DAILY",1L);
+        Habit mockHabit = new Habit(10L,"Running", "Exercise daily",Frequency.DAILY,1L);
+        Mockito.when(habitServiceImpl.create(createHabitDto)).thenReturn(mockHabit);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/habit")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(createHabitDto)))
-                .andExpect(status().isOk());
-    }
+                        .content(objectMapper.writeValueAsString(createHabitDto))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isCreated())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Running"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.description").value("Exercise daily"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.frequency").value("DAILY"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userId").value("1"));
 
+    }
     @Test
     public void testUpdateHabit() throws Exception {
-        HabitDto habitDto = new HabitDto(5L,"UpdatedHabitName","Description", Frequency.DAILY);
 
-        mockMvc.perform(put("/habit")
+        HabitDto habitDto = new HabitDto(10L,"Gym","qweqew",Frequency.DAILY);
+        Habit mockHabit2 = new Habit(10L,"Gym","qweqew",Frequency.DAILY,1L);
+        Mockito.when(habitServiceImpl.containById(10L)).thenReturn(true);
+        Mockito.when(habitServiceImpl.update(habitDto)).thenReturn(mockHabit2);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/habit")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(habitDto)))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    public void testGetAllUserHabit() throws Exception {
-        User user = new User(10L,"username","password", Role.USER);
-        List<Habit> habitList = new ArrayList<>();
-
-        when(habitService.getUserHabits(user)).thenReturn(habitList);
-        mockMvc.perform(get("/habit")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(user)))
-                .andExpect(status().isOk());
-
+                        .content(objectMapper.writeValueAsString(habitDto))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Gym"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.description").value("qweqew"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.frequency").value("DAILY"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userId").value("1"));
     }
 
     @Test
     public void testDeleteHabit() throws Exception {
-        Long id = 1L;
-        when(habitService.containById(id)).thenReturn(true);
+        Long habitId = 1L;
+        Mockito.when(habitServiceImpl.containById(habitId)).thenReturn(true);
 
-        mockMvc.perform(delete("/habit")
+        mockMvc.perform(MockMvcRequestBuilders.delete("/habit")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(id)))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Привычка удалена"));
+                        .content(String.valueOf(habitId))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
+
+    @Test
+    public void testGetAllUserHabit() throws Exception {
+        User user = new User(1L,"johndoe@example.com","qwerty",Role.USER);
+        List<Habit> mockHabitList = new ArrayList<>();
+        mockHabitList.add(new Habit(10L,"Running", "Exercise daily", Frequency.DAILY,1L));
+        mockHabitList.add(new Habit(11L,"Reading", "Read" ,Frequency.DAILY,1L));
+
+        Mockito.when(habitServiceImpl.getAll(user)).thenReturn(mockHabitList);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/habit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Running"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].description").value("Exercise daily"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[1].name").value("Reading"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[1].description").value("Read"));
+    }
+
 }

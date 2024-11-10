@@ -11,6 +11,7 @@ public class CreateDateValidator implements Validator<CreateDateOfComplDto>{
         ValidationResult validationResult = new ValidationResult();
         if(dateOfComplDto.getDate().isEmpty()){
             validationResult.add(Error.of("date invalid","Date invalid"));
+            throw new IllegalArgumentException("Invalid date");
         }
         return validationResult;
     }

@@ -1,33 +1,38 @@
 package by.vladimir.validator;
 
 import by.vladimir.dto.CreateUserDto;
-import by.vladimir.entity.Role;
+import by.vladimir.service.implementation.Filter;
+import by.vladimir.service.implementation.UserServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class CreateUserValidator implements Validator<CreateUserDto> {
+
+    private final Filter filter;
+
+    private static final String EMAIL_REGEX = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+
+    private static final String PASSWORD_REGEX = "^[a-zA-Z0-9]{6,15}$";
 
     @Override
     public ValidationResult isValid(CreateUserDto userDto) {
 
-        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
-
-        String passwordRegex = "^[a-zA-Z0-9]{6,15}$";
-
         ValidationResult validationResult = new ValidationResult();
 
-        if (!userDto.getEmail().matches(emailRegex)) {
+        if (!userDto.getEmail().matches(EMAIL_REGEX)) {
             validationResult.add(Error.of("invalid email", "Invalid email"));
-            System.out.println("Invalid email");
+            throw new IllegalArgumentException("Invalid email");
         }
-        if (!userDto.getPassword().matches(passwordRegex)) {
+        if (!userDto.getPassword().matches(PASSWORD_REGEX)) {
             validationResult.add(Error.of("invalid password", "Invalid password"));
-            System.out.println("Invalid pass");
+            throw new IllegalArgumentException("Invalid password");
 
         }
-        if (Role.find(userDto.getRole()).isEmpty()) {
+        if (filter.findRole(userDto.getRole()).isEmpty()) {
             validationResult.add(Error.of("invalid role", "Invalid role"));
-            System.out.println("Invalid role");
+            throw new IllegalArgumentException("Invalid role");
 
         }
         return validationResult;

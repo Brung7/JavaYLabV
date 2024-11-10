@@ -6,7 +6,6 @@ import by.vladimir.entity.DateOfCompletion;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-import org.mapstruct.factory.Mappers;
 
 /**
  * Интерфейс для маппинга Dto даты выполнения.

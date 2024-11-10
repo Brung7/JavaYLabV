@@ -2,44 +2,36 @@ package by.vladimir.dao;
 import by.vladimir.entity.Frequency;
 import by.vladimir.entity.Habit;
 import by.vladimir.utils.ConnectionManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import by.vladimir.utils.SqlQueries;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Connection;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.ArrayList;
+
+
 
 /**
  * Класс для взаимодействия с таблицей habit в базе данных
  */
 @Repository
+@RequiredArgsConstructor
 public class HabitDao {
 
-    private ConnectionManager connectionManager;
+    private final ConnectionManager connectionManager;
 
-    @Autowired
-    public HabitDao(ConnectionManager connectionManager) {
-        this.connectionManager = connectionManager;
-    }
+    private final SqlQueries sqlQueries;
 
-    private static final String SAVE_SQL = """
-            INSERT INTO main.habits (name, description, frequency, user_id) VALUES (?,?,?,?)
-            """;
-    private static final String UPDATE_SQL = """
-            UPDATE main.habits
-            SET name=?,
-            description=?,
-            frequency=?
-            WHERE id=?
-            """;
-    private static final String DELETE_SQL = """
-            DELETE FROM main.habits WHERE id=?
-            """;
-    private static final String FIND_BY_ID_SQL = """
-            SELECT id, name, description, frequency, user_id FROM main.habits WHERE id=?
-            """;
-    private static final String FIND_BY_USERID_SQL = """
-            SELECT id, name, description, frequency, user_id FROM main.habits WHERE user_id=?
-            """;
+
+
+
 
     /**
      * Принимает на вход объект класса Habit.
@@ -52,7 +44,7 @@ public class HabitDao {
      */
     public Habit save(Habit habit){
         try(Connection connection = connectionManager.get();
-            PreparedStatement statement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
+            PreparedStatement statement = connection.prepareStatement(sqlQueries.getSAVE_HABIT(), Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1,habit.getName());
             statement.setString(2, habit.getDescription());
             statement.setString(3, (habit.getFrequency().name()));
@@ -76,7 +68,7 @@ public class HabitDao {
      */
     public void delete(Long id){
         try(Connection connection = connectionManager.get();
-        PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
+        PreparedStatement statement = connection.prepareStatement(sqlQueries.getDELETE_HABIT())) {
             statement.setLong(1,id);
         statement.executeUpdate();
         } catch (SQLException e) {
@@ -95,7 +87,7 @@ public class HabitDao {
      */
     public Optional<Habit> findById(Long id){
         try(Connection connection = connectionManager.get();
-        PreparedStatement statement = connection.prepareStatement(FIND_BY_ID_SQL)) {
+        PreparedStatement statement = connection.prepareStatement(sqlQueries.getFIND_BY_ID_HABIT())) {
             statement.setLong(1, id);
             ResultSet result = statement.executeQuery();
             Optional<Habit> habit = Optional.empty();
@@ -135,7 +127,7 @@ public class HabitDao {
 
     public void update(Habit habit){
         try (Connection connection = connectionManager.get();
-        PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)){
+        PreparedStatement statement = connection.prepareStatement(sqlQueries.getUPDATE_HABIT())){
             statement.setString(1,habit.getName());
             statement.setString(2,habit.getDescription());
             statement.setString(3,habit.getFrequency().name());
@@ -157,7 +149,7 @@ public class HabitDao {
      */
     public List<Habit> findByUserId(Long userId) {
         try (Connection connection = connectionManager.get();
-             PreparedStatement statement = connection.prepareStatement(FIND_BY_USERID_SQL)) {
+             PreparedStatement statement = connection.prepareStatement(sqlQueries.getFIND_BY_USERID_HABIT())) {
             statement.setLong(1, userId);
             List<Habit> habitList = new ArrayList<>();
             ResultSet result = statement.executeQuery();

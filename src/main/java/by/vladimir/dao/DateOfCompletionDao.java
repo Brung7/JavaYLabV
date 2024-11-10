@@ -3,47 +3,34 @@ package by.vladimir.dao;
 import by.vladimir.entity.DateOfCompletion;
 import by.vladimir.utils.ConnectionManager;
 import by.vladimir.utils.DateFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
+import by.vladimir.utils.SqlQueries;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Connection;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+
 /**
  * Класс для взаимодейсвия с таблицей date в базе данных
  */
 @Repository
+@RequiredArgsConstructor
 public class DateOfCompletionDao {
 
-    private ConnectionManager connectionManager;
-    private DateFormatter dateFormatter;
-    @Autowired
-    public DateOfCompletionDao(ConnectionManager connectionManager, DateFormatter dateFormatter) {
-        this.connectionManager = connectionManager;
-        this.dateFormatter = dateFormatter;
-    }
+    private final ConnectionManager connectionManager;
 
-    private static final String SAVE_SQL = """
-            INSERT INTO main.dates (completion_date,habit_id) VALUES (?,?)
-            """;
-    private static final String UPDATE_SQL = """
-            UPDATE main.dates
-            SET
-            completion_date=?
-            WHERE id=?
-            """;
-    private static final String DELETE_SQL= """
-            DELETE FROM main.dates WHERE id=?;
-            """;
-    private static final String FIND_BY_ID = """
-            SELECT id,habit_id,completion_date FROM main.dates WHERE id=?
-            """;
-    private static final String FIND_BY_HABIT = """
-            SELECT id,habit_id,completion_date FROM main.dates WHERE habit_id=?
-            """;
+    private final DateFormatter dateFormatter;
+
+    private final SqlQueries sqlQueries;
 
     /**
      * Метод принимает объект класса DateOfCompletion.
@@ -55,7 +42,7 @@ public class DateOfCompletionDao {
      */
     public DateOfCompletion save(DateOfCompletion date){
         try (Connection connection = connectionManager.get();
-             PreparedStatement statement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)){
+             PreparedStatement statement = connection.prepareStatement(sqlQueries.getSAVE_DATE(), Statement.RETURN_GENERATED_KEYS)){
             statement.setDate(1, dateFormatter.convertSqlToUtil(date.getDate()));
             statement.setLong(2,date.getHabitId());
             statement.executeUpdate();
@@ -77,7 +64,7 @@ public class DateOfCompletionDao {
     public void update(DateOfCompletion date){
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         try (Connection connection = connectionManager.get();
-        PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)){
+        PreparedStatement statement = connection.prepareStatement(sqlQueries.getUPDATE_DATE())){
             statement.setDate(1,dateFormatter.convertSqlToUtil(date.getDate()));
             statement.setLong(2,date.getId());
             statement.executeUpdate();
@@ -93,7 +80,7 @@ public class DateOfCompletionDao {
      */
     public void delete(Long id){
         try (Connection connection = connectionManager.get();
-        PreparedStatement statement = connection.prepareStatement(DELETE_SQL)){
+        PreparedStatement statement = connection.prepareStatement(sqlQueries.getDELETE_DATE())){
             statement.setLong(1,id);
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -111,7 +98,7 @@ public class DateOfCompletionDao {
     public List<DateOfCompletion> findByHabitId(Long habitId){
         List<DateOfCompletion> listDate = new ArrayList<>();
         try (Connection connection = connectionManager.get();
-        PreparedStatement statement = connection.prepareStatement(FIND_BY_HABIT)){
+        PreparedStatement statement = connection.prepareStatement(sqlQueries.getFIND_BY_HABIT_ID())){
             statement.setLong(1,habitId);
             ResultSet result = statement.executeQuery();
             while (result.next()){
@@ -148,7 +135,7 @@ public class DateOfCompletionDao {
      */
     public Optional<DateOfCompletion> findById(Long id){
         try (Connection connection = connectionManager.get();
-        PreparedStatement statement = connection.prepareStatement(FIND_BY_ID)){
+        PreparedStatement statement = connection.prepareStatement(sqlQueries.getFIND_BY_ID_HABIT())){
             statement.setLong(1,id);
             ResultSet result = statement.executeQuery();
             Optional<DateOfCompletion> optionalDateOfCompletion = Optional.empty();

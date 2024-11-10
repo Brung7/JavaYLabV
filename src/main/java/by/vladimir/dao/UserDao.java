@@ -6,52 +6,33 @@ import by.vladimir.entity.Frequency;
 import by.vladimir.entity.Role;
 import by.vladimir.entity.User;
 import by.vladimir.utils.ConnectionManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import by.vladimir.utils.SqlQueries;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Connection;
+
+import java.util.Objects;
+import java.util.Optional;
+import java.util.List;
+import java.util.ArrayList;
+
 
 /**
  * Класс для взаимодействия с таблицей users в базе данных
  */
 @Repository
+@RequiredArgsConstructor
 public class UserDao {
-    private ConnectionManager connectionManager;
 
-    @Autowired
-    public UserDao(ConnectionManager connectionManager) {
-        this.connectionManager = connectionManager;
-    }
+    private final ConnectionManager connectionManager;
 
-    private static final String SAVE_SQL = """
-            INSERT INTO main.users (email, password, role) VALUES (?,?,?)
-            """;
-    private static final String FIND_ALL_SQL = """
-            SELECT id, email, password, role FROM main.users
-            """;
-    private static final String FIND_BY_EMAIL_SQL = """
-            SELECT id, email, password, role FROM main.users WHERE email=?
-            """;
-    private static final String FIND_BY_ID_SQL= """
-            SELECT * FROM main.users WHERE id=?
-            """;
-    private static final String DELETE_SQL= """
-            DELETE FROM main.users WHERE id=?
-            """;
-    private static final String UPDATE_SQL= """
-            UPDATE main.users
-            SET email=?,
-            password=?,
-            role=?
-            WHERE id=?
-            """;
-    private static final String FIND_ALL_USERS_ALL_HABITS = """
-            SELECT u.id AS user_id,u.email AS email, h.id AS habit_id,
-             h.name AS name, h.description AS description, h.frequency AS frequency
-            FROM main.users u
-            LEFT JOIN main.habits h on u.id = h.user_id
-            """;
+    private final SqlQueries sqlQueries;
+
 
 
     /**
@@ -65,7 +46,7 @@ public class UserDao {
      */
     public User save(User user) {
         try(Connection connection = connectionManager.get();
-        PreparedStatement statement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)){
+        PreparedStatement statement = connection.prepareStatement(sqlQueries.getSAVE_USER(), Statement.RETURN_GENERATED_KEYS)){
         statement.setString(1,user.getEmail());
         statement.setString(2, user.getPassword());
         statement.setString(3,user.getRole().name());
@@ -89,7 +70,7 @@ public class UserDao {
      */
     public Optional<User> findById(Long id){
         try (Connection connection = connectionManager.get();
-        PreparedStatement statement = connection.prepareStatement(FIND_BY_ID_SQL)){
+        PreparedStatement statement = connection.prepareStatement(sqlQueries.getFIND_BY_ID_USER())){
             statement.setLong(1,id);
             ResultSet result = statement.executeQuery();
             Optional<User> user = Optional.empty();
@@ -112,7 +93,7 @@ public class UserDao {
      */
     public Optional<User> findByEmail(String email) {
         try (Connection connection = connectionManager.get();
-            PreparedStatement statement = connection.prepareStatement(FIND_BY_EMAIL_SQL)) {
+            PreparedStatement statement = connection.prepareStatement(sqlQueries.getFIND_BY_EMAIL_SQL())) {
             statement.setString(1, email);
             ResultSet result = statement.executeQuery();
             Optional<User> user = Optional.empty();
@@ -149,7 +130,7 @@ public class UserDao {
      */
     public void update(User user) {
         try (Connection connection = connectionManager.get();
-        PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)){
+        PreparedStatement statement = connection.prepareStatement(sqlQueries.getUPDATE_USER())){
             statement.setString(1, user.getEmail());
             statement.setString(2, user.getPassword());
             statement.setString(3,user.getRole().name());
@@ -169,7 +150,7 @@ public class UserDao {
      */
     public void delete(Long id) {
         try (Connection connection = connectionManager.get();
-             PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
+             PreparedStatement statement = connection.prepareStatement(sqlQueries.getDELETE_USER())) {
             statement.setLong(1, id);
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -184,7 +165,7 @@ public class UserDao {
      */
     public List<User> getListOfUsers() {
         try (Connection connection = connectionManager.get();
-             PreparedStatement statement = connection.prepareStatement(FIND_ALL_SQL)) {
+             PreparedStatement statement = connection.prepareStatement(sqlQueries.getFIND_ALL_USERS())) {
             List<User> userList = new ArrayList<>();
             ResultSet result = statement.executeQuery();
             while (result.next()) {
@@ -206,7 +187,7 @@ public class UserDao {
     public List<UserDto> getAllHabitsOfAllUsers(){
         List<UserDto> users = new ArrayList<>();
         try (Connection connection = connectionManager.get();
-             PreparedStatement statement = connection.prepareStatement(FIND_ALL_USERS_ALL_HABITS)) {
+             PreparedStatement statement = connection.prepareStatement(sqlQueries.getFIND_ALL_USERS_ALL_HABITS())) {
             ResultSet result = statement.executeQuery();
             UserDto userDto = null;
             while (result.next()) {
