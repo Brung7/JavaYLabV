@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
@@ -96,5 +97,17 @@ public class UserServiceImpl implements UserService {
     public List<UserDto> getAllUsersWithHabits() {
         List<UserDto> userDtos = userDao.getAllHabitsOfAllUsers();
         return userDtos;
+    }
+
+    @Loggable
+    @AuditAspect
+    @Override
+    public void delete(Long id){
+        if(userDao.findById(id).isPresent()){
+            userDao.delete(id);
+        }
+        else {
+            throw new NoSuchElementException("Пользователь не найден");
+        }
     }
 }

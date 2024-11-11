@@ -11,12 +11,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
-
-
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import java.util.List;
 import java.util.Optional;
@@ -75,6 +74,20 @@ public class UserController {
         }
         else {
             throw  new RuntimeException("Нет прав доступа");
+        }
+    }
+
+    @Operation(summary = "Удаление пользователя", description = "Удаление пользователя администратором по id")
+    @ApiResponse(responseCode = "200", description = "Пользователь удален")
+    @ApiResponse(responseCode = "405", description = "Метод не доступен")
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> delete(@RequestBody User user){
+        if(roleFilter.isAdmin(user.getRole().name())){
+            userServiceImpl.delete(user.getId());
+            return ResponseEntity.status(HttpStatus.OK).body("Пользователь удален");
+        }
+        else{
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body("Метод не доступен");
         }
     }
 }

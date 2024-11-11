@@ -5,3 +5,4 @@ database:
   password: qwerty
 liquibase:
   changelogFilePath: db.changelog/changelog.xml
+  enable: true

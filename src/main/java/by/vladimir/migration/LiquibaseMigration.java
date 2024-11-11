@@ -2,6 +2,7 @@ package by.vladimir.migration;
 
 import by.vladimir.utils.ConnectionManager;
 import by.vladimir.utils.PropertyUtils;
+import jakarta.annotation.PostConstruct;
 import liquibase.Liquibase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
@@ -32,6 +33,7 @@ public class LiquibaseMigration {
      * Выводит в консоль сообщение о выполнени миграций
      * или выводит исключение.
      */
+    @PostConstruct
     public void runMigration() {
         Properties properties = propertyUtils.readYamlFile();
         String changeLogFilePath = properties.getProperty("liquibase.changelogFilePath");

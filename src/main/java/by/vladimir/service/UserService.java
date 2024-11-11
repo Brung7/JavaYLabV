@@ -58,4 +58,9 @@ public interface UserService {
      */
     List<User> userList();
 
+    /**
+     * Метод для удаления пользователя.
+     */
+    void delete(Long id);
+
 }
