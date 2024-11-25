@@ -5,8 +5,6 @@ import by.vladimir.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-import org.mapstruct.factory.Mappers;
-import org.springframework.stereotype.Component;
 
 /**
  * Интерфейс для маппинга Dto пользователя.

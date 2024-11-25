@@ -1,47 +1,26 @@
 package by.vladimir.service;
 
-import by.vladimir.dao.HabitDao;
 import by.vladimir.dto.CreateHabitDto;
 import by.vladimir.dto.HabitDto;
+import by.vladimir.entity.Frequency;
 import by.vladimir.entity.Habit;
 import by.vladimir.entity.User;
-import by.vladimir.mapper.HabitMapper;
-import by.vladimir.validator.CreateHabitValidator;
-import by.vladimir.validator.UpdateHabitValidator;
-import by.vladimir.validator.ValidationResult;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 /**
- * Класс service ответственный за работу с привычками.
+ * Сервис для работы с привычками.
  */
-@Service
-public class HabitService {
+public interface HabitService {
 
-    private HabitDao habitDao;
-    private HabitMapper habitMapper;
-    private CreateHabitValidator habitValidator;
-    private UpdateHabitValidator updateHabitValidator;
-
-    @Autowired
-    public HabitService(HabitDao habitDao, HabitMapper habitMapper, CreateHabitValidator habitValidator, UpdateHabitValidator updateHabitValidator) {
-        this.habitDao = habitDao;
-        this.habitMapper = habitMapper;
-        this.habitValidator = habitValidator;
-        this.updateHabitValidator = updateHabitValidator;
-    }
-
-    public Habit getHabitById(Long id){
-        Optional<Habit> habitOptional = habitDao.findById(id);
-        if(habitOptional.isPresent()){
-            return habitOptional.get();
-        }
-        else {
-            return null;
-        }
-    }
+    /**
+     * Получает на вход индификатор привычки и
+     * возвращает по нему объект класса Habit.
+     * @param id - индификатор привычки.
+     * @return объект класса Habit.
+     */
+    Habit getHabitById(Long id);
 
     /**
      * Получает пользователя на вход.
@@ -51,19 +30,7 @@ public class HabitService {
      * @param user - пользователя список привычек, которого надо получить.
      * @return список привычек
      */
-    public List<Habit> getUserHabits(User user) {
-        Long id = user.getId();
-        Optional<List<Habit>> optionalHabits = Optional.ofNullable(habitDao.findByUserId(id));
-        if (optionalHabits.isPresent()) {
-            if (!habitDao.findByUserId(id).isEmpty()) {
-                return habitDao.findByUserId(id);
-            } else {
-                return Collections.emptyList();
-            }
-        } else {
-            return new ArrayList<>();
-        }
-    }
+    List<Habit> getAll(User user);
 
     /**
      * Получает на вход createHabitDto.
@@ -74,16 +41,7 @@ public class HabitService {
      * @param createHabitDto - Dto получаемой привычки
      * @return Habit или исключение.
      */
-    public Habit createHabit(CreateHabitDto createHabitDto) {
-        ValidationResult validationResult = habitValidator.isValid(createHabitDto);
-        if(!validationResult.isValid()){
-            throw new IllegalArgumentException("Invalid CreateHabitDto");
-        }
-        else {
-            Habit habit = habitMapper.toHabit(createHabitDto);
-            return habitDao.save(habit);
-        }
-    }
+    Habit create(CreateHabitDto createHabitDto);
 
     /**
      * Получает habitDto на вход.
@@ -93,16 +51,7 @@ public class HabitService {
      * Если не валидно выдает исключение с сообщением.
      * @param habitDto - Dto получаемой привычки
      */
-    public void update(HabitDto habitDto) {
-        ValidationResult validationResult = updateHabitValidator.isValid(habitDto);
-        if(!validationResult.isValid()){
-            throw new IllegalArgumentException("Invalid habitDto");
-        }
-        else {
-            Habit habit = habitMapper.toHabitFromHabitDto(habitDto);
-            habitDao.update(habit);
-        }
-    }
+    Habit update(HabitDto habitDto);
 
     /**
      * Получает id привычки.
@@ -111,22 +60,13 @@ public class HabitService {
      * @param id - индификатор привычки, которую надо проверить на существование.
      * @return - возвращает true, если существует, false, если нет.
      */
-    public boolean containById(Long id) {
-        Optional<Habit> habitOptional = habitDao.findById(id);
-        if (habitOptional.isPresent()) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+    boolean containById(Long id);
 
     /**
      * Получает на вход id.
      * Передает id в метод delete, класса HabitDao.
      * @param id - индификатор привычки, которую надо удалить.
      */
-    public void delete(Long id) {
-        habitDao.delete(id);
-    }
+    void delete(Long id);
 
 }

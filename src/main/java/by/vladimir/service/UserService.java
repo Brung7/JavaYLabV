@@ -3,34 +3,14 @@ package by.vladimir.service;
 import by.vladimir.dto.CreateUserDto;
 import by.vladimir.dto.UserDto;
 import by.vladimir.entity.User;
-import by.vladimir.dao.UserDao;
-import by.vladimir.mapper.UserMapper;
-import by.vladimir.validator.CreateUserValidator;
-import by.vladimir.validator.ValidationResult;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Класс service ответственный за работу с пользователем.
+ * Сервис дял работы с пользователем.
  */
-@Service
-public class UserService {
-
-    private UserDao userDao;
-    private CreateUserValidator createUserValidator;
-    private UserMapper userMapper;
-
-    @Autowired
-    public UserService(UserDao userDao, CreateUserValidator createUserValidator, UserMapper userMapper) {
-        this.userDao = userDao;
-        this.createUserValidator = createUserValidator;
-        this.userMapper = userMapper;
-    }
-
-
+public interface UserService {
 
     /**
      * Получает на вход пользователя.
@@ -40,17 +20,7 @@ public class UserService {
      * @param createUserDto - объект получаемого пользователя.
      * @return возвращает результат выполнения метод save из UserDao.
      */
-    public User registration(CreateUserDto createUserDto) {
-        ValidationResult validationResult = createUserValidator.isValid(createUserDto);
-        if(!validationResult.isValid()){
-            throw new IllegalArgumentException("Invalid CreateUserDto");
-        }
-        else {
-            User user = userMapper.toUser(createUserDto);
-            return userDao.save(user);
-        }
-
-    }
+    User registration(CreateUserDto createUserDto);
 
     /**
      * Получает на вход email.
@@ -60,24 +30,14 @@ public class UserService {
      * @param email - строка c email пользователя.
      * @return возвращает Optional полученного пользователя.
      */
-    public Optional<User> authentication(String email) {
-        Optional<User> userOptional = userDao.findByEmail(email);
-        if (userOptional.isPresent()) {
-            return userOptional;
-        } else {
-            return Optional.empty();
-        }
-    }
+    Optional<User> authentication(String email);
 
-    public User findById(Long id){
-        Optional<User> optionalUser = userDao.findById(id);
-        if(optionalUser.isPresent()){
-            return optionalUser.get();
-        }
-        else {
-            return null;
-        }
-    }
+    /**
+     * Врзвращает пользователя по id
+     * @param id
+     * @return объект класса User
+     */
+    User findById(Long id);
 
     /**
      * Получает на вход email пользователя.
@@ -85,28 +45,22 @@ public class UserService {
      * @param email - строка c email пользователя.
      * @return возвращает true если пользователь есть, false если пользователя нет.
      */
-    public boolean isUserExist(String email) {
-        if (userDao.findByEmail(email).isPresent()) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @return возвращает лист пользователей, полученный из метода userDao.getListOfUsers().
-     */
-    public List<User> userList() {
-        return userDao.getListOfUsers();
-    }
+    boolean isUserExist(String email);
 
     /**
      * Возвращает лист пользователей со всеми их привычками.
      * @return лист пользователей со всеми их привычками.
      */
-    public List<UserDto> getAllUsersWithHabits() {
-        List<UserDto> userDtos = userDao.getAllHabitsOfAllUsers();
-        return userDtos;
-    }
+    List<UserDto> getAllUsersWithHabits();
+
+    /**
+     * @return возвращает лист пользователей, полученный из метода userDao.getListOfUsers().
+     */
+    List<User> userList();
+
+    /**
+     * Метод для удаления пользователя.
+     */
+    void delete(Long id);
 
 }

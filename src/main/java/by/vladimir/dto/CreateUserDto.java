@@ -1,12 +1,13 @@
 package by.vladimir.dto;
 
+import lombok.Setter;
+import lombok.Getter;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
+import lombok.Builder;
 
-@Data
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder

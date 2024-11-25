@@ -1,166 +1,201 @@
 package by.vladimir.service;
 
 import by.vladimir.dao.DateOfCompletionDao;
-import by.vladimir.dao.HabitDao;
-import by.vladimir.dao.UserDao;
 import by.vladimir.dto.CreateDateOfComplDto;
 import by.vladimir.dto.DateOfCompletionDto;
-import by.vladimir.entity.*;
+import by.vladimir.entity.DateOfCompletion;
 import by.vladimir.mapper.DateOfCompletionMapper;
-import by.vladimir.utils.ConnectionManager;
+import by.vladimir.service.implementation.DateOfCompletionServiceImpl;
 import by.vladimir.utils.DateFormatter;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
+import by.vladimir.validator.CreateDateValidator;
+import by.vladimir.validator.UpdateDateValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.SQLException;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+@Testcontainers
 public class DateOfCompletionServiceTest {
-    @Container
-    private static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest")
-            .withDatabaseName("habit_tracker")
-            .withUsername("vladimir")
-            .withPassword("admin");
 
-    private UserDao userDao;
-    private HabitDao habitDao;
+    @InjectMocks
+    private DateOfCompletionServiceImpl dateOfCompletionService;
+
+    @Mock
+    private DateOfCompletionDao dateDao;
+
+    @Mock
+    private CreateDateValidator createDateValidator;
+
+    @Mock
     private DateOfCompletionMapper dateMapper;
 
-    private DateOfCompletionDao dateOfCompletionDao;
-    private DateFormatter formatter = DateFormatter.getInstance();
-    private DateOfCompletionService dateService;
+    @Mock
+    private UpdateDateValidator updateDateValidator;
 
+    @Mock
+    private DateFormatter dateFormatter;
+
+    static PostgreSQLContainer<?> postgresqlContainer = new PostgreSQLContainer<>("postgres:latest");
+
+
+    @DynamicPropertySource
+    static void postgresqlProperties(DynamicPropertyRegistry registry) {
+        registry.add("database.url", postgresqlContainer::getJdbcUrl);
+        registry.add("database.username", postgresqlContainer::getUsername);
+        registry.add("database.password", postgresqlContainer::getPassword);
+    }
 
     @BeforeEach
-    void setUp() throws SQLException {
-
-        habitDao = HabitDao.getInstance();
-        userDao = UserDao.getInstance();
-        dateMapper = DateOfCompletionMapper.INSTANCE;
-        dateOfCompletionDao = DateOfCompletionDao.getInstance();
-        dateService = DateOfCompletionService.getInstance();
-
-
-        try (Connection connection = ConnectionManager.get()) {
-            connection.createStatement().execute("CREATE TABLE IF NOT EXISTS main.users (id SERIAL PRIMARY KEY);");
-            connection.createStatement().execute("CREATE TABLE IF NOT EXISTS main.habits (id SERIAL PRIMARY KEY, name VARCHAR(255), user_id BIGINT REFERENCES users(id));");
-            connection.createStatement().execute("CREATE TABLE IF NOT EXISTS main.dates (id SERIAL PRIMARY KEY,habit_id BIGINT REFERENCES habits(id),completion_date DATE);");
-        }
-    }
-
-    @AfterEach
-    void tearDown() throws SQLException {
-        try (Connection connection = ConnectionManager.get()) {
-            connection.createStatement().execute("DELETE FROM main.habits;");
-            connection.createStatement().execute("DELETE FROM main.users;");
-            connection.createStatement().execute("DELETE FROM main.dates;");
-
-        }
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        postgresqlContainer.start();
     }
 
     @Test
-    void createDateOfCompletion() {
-        User user = new User(1L, "test@gmail.com", "qwerty", Role.USER);
-        userDao.save(user);
+    public void testCreate_ValidDto_CreatesDateOfCompletion() {
+        CreateDateOfComplDto createDto = new CreateDateOfComplDto();
+        createDto.setId(10L);
+        createDto.setDate("2024-11-10");
+        createDto.setHabitId(1L);
 
-        Habit habit1 = new Habit(null, "Test Habit 1", "Description 1", Frequency.DAILY, user.getId());
-        habitDao.save(habit1);
-        CreateDateOfComplDto createDateOfComplDto = CreateDateOfComplDto.builder()
-                .id(null)
-                .habitId(habit1.getId())
-                .date("2024-10-19")
-                .build();
-        DateOfCompletion date = dateMapper.toDateOfCompl(createDateOfComplDto);
-        dateOfCompletionDao.save(date);
-        List<DateOfCompletion> dateOfCompletionList = dateOfCompletionDao.findByHabitId(habit1.getId());
-        Assertions.assertEquals(1, dateOfCompletionList.size());
+        DateOfCompletion date = new DateOfCompletion();
+        date.setId(11L);
+        date.setDate(dateFormatter.formatterStrToDate("2024-10-10"));
+        date.setHabitId(1L);
+
+        when(createDateValidator.isValid(createDto)).thenReturn(createDateValidator.isValid(createDto));
+        when(dateMapper.toDateOfCompl(createDto)).thenReturn(date);
+        when(dateDao.save(date)).thenReturn(date);
+
+        DateOfCompletion createdDate = dateOfCompletionService.create(createDto);
+
+        assertNotNull(createdDate);
     }
 
     @Test
-    void update() {
-        User user = new User(1L, "test@gmail.com", "qwerty", Role.USER);
-        userDao.save(user);
+    public void testCreate_InvalidDto_ThrowsException() {
+        CreateDateOfComplDto createDto = new CreateDateOfComplDto();
 
-        Habit habit1 = new Habit(null, "Test Habit 1", "Description 1", Frequency.DAILY, user.getId());
-        habitDao.save(habit1);
-        CreateDateOfComplDto createDateOfComplDto = CreateDateOfComplDto.builder()
-                .habitId(habit1.getId())
-                .date("2024-10-21")
-                .build();
-        DateOfCompletion date = dateMapper.toDateOfCompl(createDateOfComplDto);
-        dateOfCompletionDao.save(date);
-        DateOfCompletionDto dateOfCompletionDto = DateOfCompletionDto.
-                builder()
-                .id(date.getId())
-                .date("2024-10-18")
-                .build();
-        DateOfCompletion dateUpdate = dateMapper.toDateOfComplFromDto(dateOfCompletionDto);
-        dateOfCompletionDao.update(dateUpdate);
-        Optional<DateOfCompletion> optional = dateOfCompletionDao.findById(dateUpdate.getId());
-        Assertions.assertTrue(optional.isPresent());
-        Date expected = formatter.convertSqlToUtil(dateUpdate.getDate());
-        Date actual = formatter.convertSqlToUtil(optional.get().getDate());
-        Assertions.assertEquals(expected, actual);
+        when(createDateValidator.isValid(createDto)).thenAnswer(invocation -> false);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            dateOfCompletionService.create(createDto);
+        });
+        assertEquals("Invalid CreateDateOfComplDto", exception.getMessage());
     }
 
     @Test
-    void delete() {
-        User user = new User(1L, "test@gmail.com", "qwerty", Role.USER);
-        userDao.save(user);
+    public void testUpdate_ValidDto_UpdatesDateOfCompletion() {
+        Date dateStr = dateFormatter.formatterStrToDate("2024-10-10");
+        DateOfCompletionDto updateDto = new DateOfCompletionDto();
+        updateDto.setId(15L);
+        updateDto.setDate("2024-10-11");
 
-        Habit habit1 = new Habit(null, "Test Habit 1", "Description 1", Frequency.DAILY, user.getId());
-        habitDao.save(habit1);
-        CreateDateOfComplDto createDateOfComplDto = CreateDateOfComplDto.builder()
-                .id(null)
-                .habitId(habit1.getId())
-                .date("2024-10-19")
-                .build();
-        DateOfCompletion date = dateMapper.toDateOfCompl(createDateOfComplDto);
-        dateOfCompletionDao.save(date);
-        dateOfCompletionDao.delete(date.getId());
-        Assertions.assertFalse(dateService.containById(date.getId()));
+        DateOfCompletion date = new DateOfCompletion();
+        date.setId(13L);
+        date.setDate(dateStr);
+        date.setHabitId(1L);
+        when(updateDateValidator.isValid(updateDto)).thenAnswer(invocation -> true);
+        when(dateMapper.toDateOfComplFromDto(updateDto)).thenReturn(date);
+
+        dateOfCompletionService.update(updateDto);
+
+        verify(dateDao).update(date);
     }
 
     @Test
-    void findByHabitId() {
-        User user = new User(1L, "test@gmail.com", "qwerty", Role.USER);
-        userDao.save(user);
+    public void testUpdate_InvalidDto_ThrowsException() {
 
-        Habit habit1 = new Habit(null, "Test Habit 1", "Description 1", Frequency.DAILY, user.getId());
-        habitDao.save(habit1);
-        CreateDateOfComplDto createDateOfComplDto = CreateDateOfComplDto.builder()
-                .id(null)
-                .habitId(habit1.getId())
-                .date("2024-10-19")
-                .build();
-        DateOfCompletion date = dateMapper.toDateOfCompl(createDateOfComplDto);
-        dateOfCompletionDao.save(date);
-        List<DateOfCompletion> list = dateService.findByHabitId(habit1.getId());
-        Assertions.assertEquals(1, list.size());
+        DateOfCompletionDto updateDto = new DateOfCompletionDto();
+
+        when(updateDateValidator.isValid(updateDto)).thenAnswer(invocation -> true);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            dateOfCompletionService.update(updateDto);
+        });
+
+        assertEquals("Invalid DateOfCompletionDto", exception.getMessage());
     }
 
     @Test
-    void containById() {
-        User user = new User(1L, "test@gmail.com", "qwerty", Role.USER);
-        userDao.save(user);
+    public void testDelete() {
 
-        Habit habit1 = new Habit(null, "Test Habit 1", "Description 1", Frequency.DAILY, user.getId());
-        habitDao.save(habit1);
-        CreateDateOfComplDto createDateOfComplDto = CreateDateOfComplDto.builder()
-                .id(null)
-                .habitId(habit1.getId())
-                .date("2024-10-19")
-                .build();
-        DateOfCompletion date = dateMapper.toDateOfCompl(createDateOfComplDto);
-        dateOfCompletionDao.save(date);
-        Assertions.assertTrue(dateService.containById(date.getId()));
+        Long id = 1L;
+
+        dateOfCompletionService.delete(id);
+
+        verify(dateDao).delete(id);
+    }
+
+    @Test
+    public void testFindByHabitId() {
+
+        Long habitId = 1L;
+        DateOfCompletion date1 = new DateOfCompletion();
+        DateOfCompletion date2 = new DateOfCompletion();
+
+        when(dateDao.findByHabitId(habitId)).thenReturn(List.of(date1, date2));
+
+        List<DateOfCompletion> result = dateOfCompletionService.findByHabitId(habitId);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    public void testFindByHabitId_NoDates_ReturnsEmptyList() {
+
+        Long habitId = 1L;
+
+        when(dateDao.findByHabitId(habitId)).thenReturn(Collections.emptyList());
+
+        List<DateOfCompletion> result = dateOfCompletionService.findByHabitId(habitId);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void testContainById_DateExists_ReturnsTrue() {
+
+        Long id = 1L;
+        DateOfCompletion date = new DateOfCompletion();
+
+        when(dateDao.findById(id)).thenReturn(Optional.of(date));
+
+        boolean exists = dateOfCompletionService.containById(id);
+
+        assertTrue(exists);
+    }
+
+    @Test
+    public void testContainById_DateDoesNotExist_ReturnsFalse() {
+
+        Long id = 1L;
+
+        when(dateDao.findById(id)).thenReturn(Optional.empty());
+
+        boolean exists = dateOfCompletionService.containById(id);
+
+        assertFalse(exists);
     }
 }

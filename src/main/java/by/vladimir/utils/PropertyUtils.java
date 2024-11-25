@@ -1,7 +1,6 @@
 package by.vladimir.utils;
 
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 

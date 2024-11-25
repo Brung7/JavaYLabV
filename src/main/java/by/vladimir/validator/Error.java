@@ -1,6 +1,6 @@
 package by.vladimir.validator;
 
-import lombok.*;
+import lombok.Value;
 
 @Value(staticConstructor = "of")
 public class Error {

@@ -1,0 +1,7 @@
+starter-audit:
+  author: Vladimir
+database:
+  driver-class-name: org.postgresql.Driver
+  url: jdbc:postgresql://localhost:5438/habit_tracker
+  username: vladimir
+  password: qwerty
