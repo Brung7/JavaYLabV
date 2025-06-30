@@ -37,16 +37,10 @@
     <log.version>1.5.6</log.version>
     <mock.version>5.14.1</mock.version>
     <springdoc.version>2.6.0</springdoc.version>
-    <auditstarter.version>1.0</auditstarter.version>
 
 
   </properties>
   <dependencies>
-    <dependency>
-      <groupId>by.audit</groupId>
-      <artifactId>audit-starter</artifactId>
-      <version>${auditstarter.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>

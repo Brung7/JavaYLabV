@@ -1,11 +1,8 @@
 package by.vladimir.service.implementation;
 
-import by.audit.annotation.AuditAspect;
-import by.audit.annotation.Loggable;
 import by.vladimir.dao.HabitDao;
 import by.vladimir.dto.CreateHabitDto;
 import by.vladimir.dto.HabitDto;
-import by.vladimir.entity.Frequency;
 import by.vladimir.entity.Habit;
 import by.vladimir.entity.User;
 import by.vladimir.mapper.HabitMapper;
@@ -35,8 +32,6 @@ public class HabitServiceImpl implements HabitService {
 
     private final UpdateHabitValidator updateHabitValidator;
 
-    @AuditAspect
-    @Loggable
     @Override
     public Habit getHabitById(Long id){
         Optional<Habit> habitOptional = habitDao.findById(id);
@@ -48,8 +43,6 @@ public class HabitServiceImpl implements HabitService {
         }
     }
 
-    @AuditAspect
-    @Loggable
     @Override
     public List<Habit> getAll(User user) {
         Long id = user.getId();
@@ -65,8 +58,6 @@ public class HabitServiceImpl implements HabitService {
         }
     }
 
-    @AuditAspect
-    @Loggable
     @Override
     public Habit create(CreateHabitDto createHabitDto) {
         ValidationResult validationResult = habitValidator.isValid(createHabitDto);
@@ -79,8 +70,6 @@ public class HabitServiceImpl implements HabitService {
         }
     }
 
-    @AuditAspect
-    @Loggable
     @Override
     public Habit update(HabitDto habitDto) {
         ValidationResult validationResult = updateHabitValidator.isValid(habitDto);
@@ -94,8 +83,6 @@ public class HabitServiceImpl implements HabitService {
         }
     }
 
-    @AuditAspect
-    @Loggable
     @Override
     public boolean containById(Long id) {
         Optional<Habit> habitOptional = habitDao.findById(id);
@@ -106,8 +93,6 @@ public class HabitServiceImpl implements HabitService {
         }
     }
 
-    @AuditAspect
-    @Loggable
     @Override
     public void delete(Long id) {
         habitDao.delete(id);

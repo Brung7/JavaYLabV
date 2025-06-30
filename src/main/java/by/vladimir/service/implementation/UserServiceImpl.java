@@ -1,10 +1,7 @@
 package by.vladimir.service.implementation;
 
-import by.audit.annotation.AuditAspect;
-import by.audit.annotation.Loggable;
 import by.vladimir.dto.CreateUserDto;
 import by.vladimir.dto.UserDto;
-import by.vladimir.entity.Role;
 import by.vladimir.entity.User;
 import by.vladimir.dao.UserDao;
 import by.vladimir.mapper.UserMapper;
@@ -32,9 +29,6 @@ public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
 
-
-    @AuditAspect
-    @Loggable
     @Override
     public User registration(CreateUserDto createUserDto) {
         ValidationResult validationResult = createUserValidator.isValid(createUserDto);
@@ -48,8 +42,6 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    @AuditAspect
-    @Loggable
     @Override
     public Optional<User> authentication(String email) {
         Optional<User> userOptional = userDao.findByEmail(email);
@@ -60,8 +52,6 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @AuditAspect
-    @Loggable
     @Override
     public User findById(Long id){
         Optional<User> optionalUser = userDao.findById(id);
@@ -73,8 +63,6 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @AuditAspect
-    @Loggable
     @Override
     public boolean isUserExist(String email) {
         if (userDao.findByEmail(email).isPresent()) {
@@ -84,23 +72,17 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @AuditAspect
-    @Loggable
     @Override
     public List<User> userList() {
         return userDao.getListOfUsers();
     }
 
-    @AuditAspect
-    @Loggable
     @Override
     public List<UserDto> getAllUsersWithHabits() {
         List<UserDto> userDtos = userDao.getAllHabitsOfAllUsers();
         return userDtos;
     }
 
-    @Loggable
-    @AuditAspect
     @Override
     public void delete(Long id){
         if(userDao.findById(id).isPresent()){
