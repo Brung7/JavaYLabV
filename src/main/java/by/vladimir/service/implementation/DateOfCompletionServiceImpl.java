@@ -1,10 +1,7 @@
 package by.vladimir.service.implementation;
 
-import by.audit.annotation.AuditAspect;
-import by.audit.annotation.Loggable;
 import by.vladimir.dao.DateOfCompletionDao;
 import by.vladimir.dto.CreateDateOfComplDto;
-
 import by.vladimir.dto.DateOfCompletionDto;
 import by.vladimir.entity.DateOfCompletion;
 import by.vladimir.mapper.DateOfCompletionMapper;
@@ -35,9 +32,6 @@ public class DateOfCompletionServiceImpl implements DateOfCompletionService {
 
     private final UpdateDateValidator updateDateValidator;
 
-
-    @AuditAspect
-    @Loggable
     @Override
     public DateOfCompletion create(CreateDateOfComplDto createDateOfComplDto) {
         ValidationResult validationResult = createDateValidator.isValid(createDateOfComplDto);
@@ -50,9 +44,6 @@ public class DateOfCompletionServiceImpl implements DateOfCompletionService {
         }
     }
 
-
-    @AuditAspect
-    @Loggable
     @Override
     public void update(DateOfCompletionDto dateOfComplDto) {
         ValidationResult validationResult = updateDateValidator.isValid(dateOfComplDto);
@@ -65,17 +56,11 @@ public class DateOfCompletionServiceImpl implements DateOfCompletionService {
         }
     }
 
-
-    @AuditAspect
-    @Loggable
     @Override
     public void delete(Long id) {
         dateDao.delete(id);
     }
 
-
-    @AuditAspect
-    @Loggable
     @Override
     public List<DateOfCompletion> findByHabitId(Long habitId) {
         List<DateOfCompletion> dateOfCompletionList = dateDao.findByHabitId(habitId);
@@ -92,8 +77,6 @@ public class DateOfCompletionServiceImpl implements DateOfCompletionService {
         }
     }
 
-    @AuditAspect
-    @Loggable
     @Override
     public boolean containById(Long id) {
         Optional<DateOfCompletion> date = dateDao.findById(id);
